@@ -108,7 +108,7 @@ async function seedIfEmpty(): Promise<void> {
     )
   }
   const prods = await db.execute('SELECT COUNT(*) AS n FROM products')
-  if (num(prods.rows[0]?.n) === 0 && process.env.TURSO_LOCAL === '1') {
+  if (num(prods.rows[0]?.n) === 0) {
     const demo = buildDemoData()
     await db.batch(
       demo.products.map((p) => ({

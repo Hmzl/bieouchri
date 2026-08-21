@@ -28,11 +28,9 @@ if (!process.env.TURSO_DATABASE_URL || !process.env.TURSO_AUTH_TOKEN) {
   process.exit(1)
 }
 
-if (process.argv.includes('--demo')) process.env.TURSO_LOCAL = '1'
-
 try {
-  const { readStore } = await import('./store')
-  const data = await readStore()
+  const { loadDemo, readStore } = await import('./store')
+  const data = process.argv.includes('--demo') ? await loadDemo() : await readStore()
   console.log(`Base prête : ${data.settings.storeName}`)
   console.log(`- ${data.categories.length} catégories`)
   console.log(`- ${data.products.length} produits`)

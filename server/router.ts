@@ -28,6 +28,10 @@ function pathOf(url: URL): string {
   return url.pathname.replace(/\/+$/, '') || '/'
 }
 
+function isPath(path: string, ...names: string[]): boolean {
+  return names.includes(path)
+}
+
 async function bodyOf<T>(req: Request): Promise<T> {
   return (await req.json()) as T
 }
@@ -45,7 +49,7 @@ export async function handleApi(req: Request): Promise<Response> {
   const method = req.method.toUpperCase()
 
   try {
-    if (method === 'GET' && (path === '/api/health' || path === '/api')) {
+    if (method === 'GET' && isPath(path, '/api/health', '/api')) {
       return json({ ok: true })
     }
 
@@ -53,7 +57,7 @@ export async function handleApi(req: Request): Promise<Response> {
       return json(publicStore(await readStore()))
     }
 
-    if (method === 'POST' && (path === '/api/login' || path === '/api/auth/login')) {
+    if (method === 'POST' && isPath(path, '/api/login', '/api/auth/login')) {
       const { username, password } = await bodyOf<{ username?: string; password?: string }>(req)
       if (!username || !password || !(await verifyLogin(username, password))) {
         return json({ error: 'login.error' }, 401)
@@ -63,7 +67,7 @@ export async function handleApi(req: Request): Promise<Response> {
       return json({ token, data: merchantStore(data) })
     }
 
-    if (method === 'POST' && (path === '/api/recover' || path === '/api/auth/recover')) {
+    if (method === 'POST' && isPath(path, '/api/recover', '/api/auth/recover')) {
       try {
         const recovered = await recoverAccess()
         return json(recovered)
@@ -95,46 +99,50 @@ export async function handleApi(req: Request): Promise<Response> {
     const user = await merchantUser(req)
     if (!user) return json({ error: 'unauthorized' }, 401)
 
-    if (method === 'GET' && path === '/api/merchant/store') {
+    if (method === 'GET' && isPath(path, '/api/merchant-store', '/api/merchant/store')) {
       return json(merchantStore(await readStore()))
     }
 
-    if (method === 'PUT' && path === '/api/merchant/settings') {
+    if (method === 'PUT' && isPath(path, '/api/merchant-settings', '/api/merchant/settings')) {
       const input = await bodyOf<{ settings: Settings; password?: string }>(req)
       const settings = await saveSettings(input.settings, input.password)
       return json({ settings, data: merchantStore(await readStore()) })
     }
 
-    if (method === 'POST' && path === '/api/merchant/categories') {
+    if (method === 'POST' && isPath(path, '/api/merchant-categories', '/api/merchant/categories')) {
       const { name } = await bodyOf<{ name: string }>(req)
       const categories = await addCategory(name)
       return json({ categories })
     }
 
-    if (method === 'POST' && path === '/api/merchant/products') {
+    if (method === 'POST' && isPath(path, '/api/merchant-products', '/api/merchant/products')) {
       const input = await bodyOf<Omit<Product, 'id' | 'createdAt' | 'updatedAt'> & { id?: string }>(req)
       const product = await upsertProduct(input)
       return json({ product, data: merchantStore(await readStore()) })
     }
 
     const productDelete = path.match(/^\/api\/merchant\/products\/([^/]+)$/)
-    if (method === 'DELETE' && productDelete) {
-      await deleteProduct(decodeURIComponent(productDelete[1]))
+    if (method === 'DELETE' && (path === '/api/merchant-products' || productDelete)) {
+      const id = url.searchParams.get('id') || (productDelete ? decodeURIComponent(productDelete[1]) : '')
+      if (!id) return json({ error: 'id manquant' }, 400)
+      await deleteProduct(id)
       return json({ data: merchantStore(await readStore()) })
     }
 
     const orderPatch = path.match(/^\/api\/merchant\/orders\/([^/]+)$/)
-    if (method === 'PATCH' && orderPatch) {
-      const { status } = await bodyOf<{ status: OrderStatus }>(req)
-      await updateOrderStatus(decodeURIComponent(orderPatch[1]), status)
+    if (method === 'PATCH' && (path === '/api/merchant-orders' || orderPatch)) {
+      const { status, id: bodyId } = await bodyOf<{ status: OrderStatus; id?: string }>(req)
+      const id = bodyId || url.searchParams.get('id') || (orderPatch ? decodeURIComponent(orderPatch[1]) : '')
+      if (!id) return json({ error: 'id manquant' }, 400)
+      await updateOrderStatus(id, status)
       return json({ data: merchantStore(await readStore()) })
     }
 
-    if (method === 'POST' && path === '/api/merchant/demo') {
+    if (method === 'POST' && isPath(path, '/api/merchant-demo', '/api/merchant/demo')) {
       return json(await loadDemo())
     }
 
-    if (method === 'POST' && path === '/api/merchant/reset') {
+    if (method === 'POST' && isPath(path, '/api/merchant-reset', '/api/merchant/reset')) {
       return json(await resetAll())
     }
 

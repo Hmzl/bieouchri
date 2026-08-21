@@ -25,7 +25,7 @@ export function fetchPublicStore(): Promise<AppData> {
 }
 
 export function fetchMerchantStore(): Promise<AppData> {
-  return request<AppData>('/api/merchant/store', {}, true)
+  return request<AppData>('/api/merchant-store', {}, true)
 }
 
 export function loginRequest(username: string, password: string): Promise<{ token: string; data: AppData }> {
@@ -62,31 +62,31 @@ export function placeOrderRequest(
 }
 
 export function saveSettingsRequest(settings: Settings, password?: string): Promise<{ data: AppData }> {
-  return request('/api/merchant/settings', { method: 'PUT', body: JSON.stringify({ settings, password }) }, true)
+  return request('/api/merchant-settings', { method: 'PUT', body: JSON.stringify({ settings, password }) }, true)
 }
 
 export function addCategoryRequest(name: string): Promise<{ categories: string[] }> {
-  return request('/api/merchant/categories', { method: 'POST', body: JSON.stringify({ name }) }, true)
+  return request('/api/merchant-categories', { method: 'POST', body: JSON.stringify({ name }) }, true)
 }
 
 export function upsertProductRequest(
   product: Omit<Product, 'id' | 'createdAt' | 'updatedAt'> & { id?: string },
 ): Promise<{ data: AppData }> {
-  return request('/api/merchant/products', { method: 'POST', body: JSON.stringify(product) }, true)
+  return request('/api/merchant-products', { method: 'POST', body: JSON.stringify(product) }, true)
 }
 
 export function deleteProductRequest(id: string): Promise<{ data: AppData }> {
-  return request(`/api/merchant/products/${encodeURIComponent(id)}`, { method: 'DELETE' }, true)
+  return request(`/api/merchant-products?id=${encodeURIComponent(id)}`, { method: 'DELETE' }, true)
 }
 
 export function updateOrderStatusRequest(id: string, status: OrderStatus): Promise<{ data: AppData }> {
-  return request(`/api/merchant/orders/${encodeURIComponent(id)}`, { method: 'PATCH', body: JSON.stringify({ status }) }, true)
+  return request('/api/merchant-orders', { method: 'PATCH', body: JSON.stringify({ id, status }) }, true)
 }
 
 export function loadDemoRequest(): Promise<AppData> {
-  return request('/api/merchant/demo', { method: 'POST', body: '{}' }, true)
+  return request('/api/merchant-demo', { method: 'POST', body: '{}' }, true)
 }
 
 export function resetAllRequest(): Promise<AppData> {
-  return request('/api/merchant/reset', { method: 'POST', body: '{}' }, true)
+  return request('/api/merchant-reset', { method: 'POST', body: '{}' }, true)
 }
