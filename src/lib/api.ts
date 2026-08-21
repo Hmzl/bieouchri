@@ -29,7 +29,7 @@ export function fetchMerchantStore(): Promise<AppData> {
 }
 
 export function loginRequest(username: string, password: string): Promise<{ token: string; data: AppData }> {
-  return request('/api/auth/login', {
+  return request('/api/login', {
     method: 'POST',
     body: JSON.stringify({ username, password }),
   })
@@ -42,7 +42,7 @@ export function recoverRequest(): Promise<{
   reset: boolean
   storeName: string
 }> {
-  return request('/api/auth/recover', { method: 'POST', body: '{}' })
+  return request('/api/recover', { method: 'POST', body: '{}' })
 }
 
 export function placeOrderRequest(

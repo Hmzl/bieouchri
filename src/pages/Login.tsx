@@ -6,7 +6,7 @@ import { useI18n } from '../i18n/I18nContext'
 
 export function Login() {
   const { isMerchant, login, recoverViaWhatsApp } = useStore()
-  const { t, lang } = useI18n()
+  const { t, lang, err } = useI18n()
   const navigate = useNavigate()
   const location = useLocation()
   const from = (location.state as { from?: string } | null)?.from ?? '/merchant'
@@ -30,6 +30,9 @@ export function Login() {
         return
       }
       navigate(from.startsWith('/merchant') ? from : '/merchant', { replace: true })
+    } catch (e) {
+      const message = e instanceof Error ? e.message : 'login.unavailable'
+      setError(message === 'login.error' ? t('login.error') : err(message || 'login.unavailable'))
     } finally {
       setBusy(false)
     }

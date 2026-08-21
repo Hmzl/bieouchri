@@ -107,8 +107,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       setData(normalizeStore(result.data))
       setIsMerchant(true)
       return true
-    } catch {
-      return false
+    } catch (e) {
+      const message = e instanceof Error ? e.message : ''
+      if (message === 'login.error') return false
+      throw e instanceof Error ? e : new Error('login.unavailable')
     }
   }, [])
 

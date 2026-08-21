@@ -53,7 +53,7 @@ export async function handleApi(req: Request): Promise<Response> {
       return json(publicStore(await readStore()))
     }
 
-    if (method === 'POST' && path === '/api/auth/login') {
+    if (method === 'POST' && (path === '/api/login' || path === '/api/auth/login')) {
       const { username, password } = await bodyOf<{ username?: string; password?: string }>(req)
       if (!username || !password || !(await verifyLogin(username, password))) {
         return json({ error: 'login.error' }, 401)
@@ -63,7 +63,7 @@ export async function handleApi(req: Request): Promise<Response> {
       return json({ token, data: merchantStore(data) })
     }
 
-    if (method === 'POST' && path === '/api/auth/recover') {
+    if (method === 'POST' && (path === '/api/recover' || path === '/api/auth/recover')) {
       try {
         const recovered = await recoverAccess()
         return json(recovered)
