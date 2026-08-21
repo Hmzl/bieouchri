@@ -2,6 +2,7 @@ import { Navigate, Outlet, Route, Routes, useLocation, useParams } from 'react-r
 import { PrefsBar } from './components/PrefsBar'
 import { ClientNav, MerchantNav } from './components/BottomNav'
 import { InstallBanner } from './components/InstallBanner'
+import { isAppInstalled } from './lib/install'
 import { useStore } from './context/StoreContext'
 import { useI18n } from './i18n/I18nContext'
 import { Login } from './pages/Login'
@@ -23,7 +24,7 @@ import { Thanks } from './pages/client/Thanks'
 
 function Phone({ nav }: { nav?: 'merchant' | 'client' }) {
   const location = useLocation()
-  const showInstall = nav === 'client' && location.pathname === '/'
+  const showInstall = nav === 'client' && location.pathname === '/' && !isAppInstalled()
   return (
     <div className="app-root">
       <PrefsBar />

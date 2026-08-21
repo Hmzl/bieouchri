@@ -1443,61 +1443,66 @@ html[data-theme="dark"] .checkout-bar {
   bottom: calc(var(--nav-h) + var(--safe-b) + 10px);
   z-index: 25;
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: auto 1fr;
+  grid-template-areas:
+    "icon copy"
+    "btn btn";
   align-items: center;
-  gap: 10px;
-  padding: 12px 12px 12px 10px;
-  background: var(--white);
+  gap: 10px 12px;
+  padding: 16px 14px 14px;
+  background: linear-gradient(180deg, var(--white), var(--paper-2));
   border-radius: 22px;
   box-shadow:
-    0 18px 40px rgba(27, 36, 51, 0.18),
-    0 0 0 1px rgba(240, 180, 41, 0.35);
-  animation: install-in 0.85s cubic-bezier(0.22, 1.15, 0.36, 1);
+    0 18px 40px rgba(27, 36, 51, 0.22),
+    0 0 0 2px rgba(240, 180, 41, 0.55);
+  animation: install-in 0.9s cubic-bezier(0.22, 1.15, 0.36, 1);
 }
 
 .install-banner-icon {
-  width: 52px;
-  height: 52px;
+  grid-area: icon;
+  width: 56px;
+  height: 56px;
   display: grid;
   place-items: center;
-  animation: install-pulse 1.6s ease-in-out infinite;
+  animation: install-pulse 1.5s ease-in-out infinite;
 }
 
 .install-banner-copy {
+  grid-area: copy;
   min-width: 0;
+  padding-inline-end: 22px;
 }
 
 .install-banner-copy strong {
   display: block;
-  font-size: 0.92rem;
+  font-size: 1rem;
 }
 
 .install-banner-copy p {
-  margin: 2px 0 0;
+  margin: 4px 0 0;
   color: var(--muted);
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   line-height: 1.35;
 }
 
 .install-banner-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 10px 12px;
-  font-size: 0.82rem;
-  white-space: nowrap;
+  grid-area: btn;
+  width: 100%;
+  justify-content: center;
+  min-height: 48px;
+  font-size: 1rem;
   animation: install-btn 1.8s ease-in-out infinite;
 }
 
 .install-banner-close {
   position: absolute;
-  top: 6px;
-  inset-inline-end: 6px;
-  width: 28px;
-  height: 28px;
+  top: 8px;
+  inset-inline-end: 8px;
+  width: 32px;
+  height: 32px;
   border: 0;
   border-radius: 999px;
-  background: transparent;
+  background: var(--paper);
   color: var(--muted);
   display: grid;
   place-items: center;
@@ -1539,7 +1544,7 @@ html[data-theme="dark"] .checkout-bar {
 }
 
 html[dir="rtl"] .install-banner {
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: auto 1fr;
 }
 
 @media print {

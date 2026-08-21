@@ -4,7 +4,10 @@ import { BrowserRouter } from 'react-router-dom'
 import { StoreProvider } from './context/StoreContext'
 import { I18nProvider } from './i18n/I18nContext'
 import App from './App'
+import { captureInstallState } from './lib/install'
 import './index.css'
+
+captureInstallState()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

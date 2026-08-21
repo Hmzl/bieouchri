@@ -311,6 +311,7 @@ const fr: Record<string, string> = {
   'install.close': 'Plus tard',
   'install.iosTitle': 'Sur iPhone',
   'install.ios': 'Appuyez sur Partager, puis « Sur l’écran d’accueil ».',
+  'install.android': 'Menu Chrome ⋮ puis « Ajouter à l’écran d’accueil ».',
 }
 
 const ar: Record<string, string> = {
@@ -621,6 +622,7 @@ const ar: Record<string, string> = {
   'install.close': 'لاحقاً',
   'install.iosTitle': 'على آيفون',
   'install.ios': 'اضغط مشاركة ثم «على الشاشة الرئيسية».',
+  'install.android': 'قائمة Chrome ⋮ ثم «إضافة إلى الشاشة الرئيسية».',
 }
 
 export const DICTS = { fr, ar }
