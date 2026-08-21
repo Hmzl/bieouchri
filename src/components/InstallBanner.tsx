@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useI18n } from '../i18n/I18nContext'
-import { canUseNativeInstallPrompt, installHint, isAppInstalled, markAppInstalled, rememberIfInstalled } from '../lib/install'
+import { canUseNativeInstallPrompt, checkRelatedAppsInstalled, installHint, isAppInstalled, markAppInstalled, rememberIfInstalled } from '../lib/install'
 import { IconClose, IconDownload, IconShare } from './Icons'
 import { Logo } from './Logo'
 
@@ -42,8 +42,8 @@ export function InstallBanner() {
       if (media.matches) hideInstalled()
     }
     media.addEventListener?.('change', onDisplay)
-    void navigator.getInstalledRelatedApps?.().then((apps) => {
-      if (apps && apps.length > 0) hideInstalled()
+    void checkRelatedAppsInstalled().then((installed) => {
+      if (installed) hideInstalled()
     })
 
     const started = Number(sessionStorage.getItem(ENTERED_KEY) || Date.now())

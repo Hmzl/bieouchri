@@ -12,7 +12,8 @@ export function setDbClient(next: Client): void {
 }
 
 export function getDb(): Client {
-  if (g().__awaniDb) return g().__awaniDb
+  const existing = g().__awaniDb
+  if (existing) return existing
   const url = process.env.TURSO_DATABASE_URL
   const authToken = process.env.TURSO_AUTH_TOKEN
   if (!url || url === 'undefined') {
@@ -25,14 +26,16 @@ export function getDb(): Client {
     }
     const req = mod.createRequire(import.meta.url)
     const { createClient: createFileClient } = req('@libsql/client') as { createClient: (c: { url: string }) => Client }
-    g().__awaniDb = createFileClient({ url })
-    return g().__awaniDb
+    const fileClient = createFileClient({ url })
+    g().__awaniDb = fileClient
+    return fileClient
   }
   if (!authToken) {
     throw new Error('Turso n’est pas configuré. Ajoutez TURSO_DATABASE_URL et TURSO_AUTH_TOKEN.')
   }
-  g().__awaniDb = createClient({ url, authToken })
-  return g().__awaniDb
+  const remote = createClient({ url, authToken })
+  g().__awaniDb = remote
+  return remote
 }
 
 export function authSecret(): string {

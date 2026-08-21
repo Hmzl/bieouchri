@@ -50,3 +50,11 @@ export function canUseNativeInstallPrompt(): boolean {
 export function installHint(): 'ios' | 'android' {
   return /iPhone|iPad|iPod/i.test(navigator.userAgent) ? 'ios' : 'android'
 }
+
+export function checkRelatedAppsInstalled(): Promise<boolean> {
+  const nav = navigator as Navigator & {
+    getInstalledRelatedApps?: () => Promise<unknown[]>
+  }
+  if (!nav.getInstalledRelatedApps) return Promise.resolve(false)
+  return nav.getInstalledRelatedApps().then((apps) => apps.length > 0)
+}
