@@ -98,6 +98,11 @@ export async function ensureSchema(): Promise<Client> {
       order_id TEXT NOT NULL,
       created_at TEXT NOT NULL
     );
+    CREATE TABLE IF NOT EXISTS users (
+      id INTEGER PRIMARY KEY CHECK (id = 1),
+      username TEXT NOT NULL UNIQUE,
+      password_hash TEXT NOT NULL
+    );
   `)
   g().__awaniSchemaReady = true
   return db

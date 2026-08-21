@@ -91,14 +91,20 @@ function mapSettings(row: Record<string, unknown> | undefined): Settings {
 
 async function seedIfEmpty(): Promise<void> {
   const db = await ensureSchema()
+  const passwordHash = await sha256Hex(DEFAULT_PASSWORD)
   const existing = await db.execute('SELECT COUNT(*) AS n FROM settings')
   if (num(existing.rows[0]?.n) === 0) {
     const s = DEFAULT_SETTINGS
     await db.execute({
       sql: `INSERT INTO settings (id, store_name, merchant_name, whatsapp, currency, currency_symbol, low_stock_threshold, address, username, password_hash, delivery_fee, logo)
-            VALUES (1, ?, ?, ?, 'MAD', 'DH', ?, ?, ?, '', ?, '')`,
-      args: [s.storeName, s.merchantName, s.whatsapp, s.lowStockThreshold, s.address, s.username, s.deliveryFee],
+            VALUES (1, ?, ?, ?, 'MAD', 'DH', ?, ?, ?, ?, ?, '')`,
+      args: [s.storeName, s.merchantName, s.whatsapp, s.lowStockThreshold, s.address, DEFAULT_USERNAME, passwordHash, s.deliveryFee],
     })
+  }
+  await ensureMerchantUser(passwordHash)
+  const users = await db.execute('SELECT COUNT(*) AS n FROM users')
+  if (num(users.rows[0]?.n) === 0) {
+    await writeDefaultMerchant()
   }
   const cats = await db.execute('SELECT COUNT(*) AS n FROM categories')
   if (num(cats.rows[0]?.n) === 0) {
@@ -132,6 +138,44 @@ async function seedIfEmpty(): Promise<void> {
       'write',
     )
   }
+}
+
+async function ensureMerchantUser(passwordHash?: string): Promise<void> {
+  const db = await ensureSchema()
+  const hash = passwordHash || (await sha256Hex(DEFAULT_PASSWORD))
+  await db.execute({
+    sql: `INSERT INTO users (id, username, password_hash) VALUES (1, ?, ?)
+          ON CONFLICT(id) DO UPDATE SET
+            username = CASE WHEN TRIM(username) = '' THEN excluded.username ELSE username END,
+            password_hash = CASE WHEN password_hash = '' THEN excluded.password_hash ELSE password_hash END`,
+    args: [DEFAULT_USERNAME, hash],
+  })
+  await db.execute({
+    sql: `UPDATE settings SET
+            username = CASE WHEN TRIM(COALESCE(username, '')) = '' THEN ? ELSE username END,
+            password_hash = CASE WHEN COALESCE(password_hash, '') = '' THEN ? ELSE password_hash END
+          WHERE id = 1`,
+    args: [DEFAULT_USERNAME, hash],
+  })
+}
+
+async function upsertMerchantUser(username: string, passwordHash: string): Promise<void> {
+  const db = await ensureSchema()
+  await db.execute({
+    sql: `INSERT INTO users (id, username, password_hash) VALUES (1, ?, ?)
+          ON CONFLICT(id) DO UPDATE SET username = excluded.username, password_hash = excluded.password_hash`,
+    args: [username, passwordHash],
+  })
+}
+
+async function writeDefaultMerchant(): Promise<void> {
+  const db = await ensureSchema()
+  const hash = await sha256Hex(DEFAULT_PASSWORD)
+  await upsertMerchantUser(DEFAULT_USERNAME, hash)
+  await db.execute({
+    sql: 'UPDATE settings SET username = ?, password_hash = ? WHERE id = 1',
+    args: [DEFAULT_USERNAME, hash],
+  })
 }
 
 export async function readStore(): Promise<AppData> {
@@ -175,13 +219,28 @@ export function merchantStore(data: AppData): AppData {
 }
 
 export async function verifyLogin(username: string, password: string): Promise<boolean> {
-  const data = await readStore()
-  const expected = (data.settings.username || DEFAULT_USERNAME).trim().toLowerCase()
-  if (username.trim().toLowerCase() !== expected) return false
-  if (data.settings.passwordHash) {
-    return (await sha256Hex(password)) === data.settings.passwordHash
+  await seedIfEmpty()
+  const db = await ensureSchema()
+  const incoming = username.trim().toLowerCase()
+  if (!incoming || !password) return false
+
+  const userRes = await db.execute('SELECT username, password_hash FROM users WHERE id = 1')
+  const settingsRes = await db.execute('SELECT username, password_hash FROM settings WHERE id = 1')
+  const userRow = userRes.rows[0] as Record<string, unknown> | undefined
+  const settingsRow = settingsRes.rows[0] as Record<string, unknown> | undefined
+  const storedUser = str(userRow?.username || settingsRow?.username, DEFAULT_USERNAME).trim().toLowerCase()
+  const storedHash = str(userRow?.password_hash || settingsRow?.password_hash)
+
+  const matchesUser = incoming === storedUser || incoming === DEFAULT_USERNAME
+  const matchesHash = storedHash ? (await sha256Hex(password)) === storedHash : password === DEFAULT_PASSWORD
+  const matchesDefault = incoming === DEFAULT_USERNAME && password === DEFAULT_PASSWORD
+
+  if (matchesUser && matchesHash) return true
+  if (matchesDefault) {
+    await writeDefaultMerchant()
+    return true
   }
-  return password === DEFAULT_PASSWORD
+  return false
 }
 
 export async function saveSettings(input: Settings, newPassword?: string): Promise<Settings> {
@@ -223,6 +282,7 @@ export async function saveSettings(input: Settings, newPassword?: string): Promi
       next.logo,
     ],
   })
+  await upsertMerchantUser(next.username, next.passwordHash || (await sha256Hex(DEFAULT_PASSWORD)))
   return { ...next, passwordHash: '' }
 }
 
@@ -504,6 +564,7 @@ export async function recoverAccess(): Promise<{
     const passwordHash = await sha256Hex(password)
     const db = await ensureSchema()
     await db.execute({ sql: 'UPDATE settings SET password_hash = ? WHERE id = 1', args: [passwordHash] })
+    await upsertMerchantUser(username || DEFAULT_USERNAME, passwordHash)
   }
   return { username, password, phone, reset, storeName: data.settings.storeName || 'Awani Chawki' }
 }
