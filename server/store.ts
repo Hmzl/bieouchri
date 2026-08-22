@@ -1,5 +1,5 @@
 import type { AppData, Invoice, Order, OrderStatus, Product, Settings } from '../src/types'
-import { buildDemoData } from '../src/lib/demo'
+import { buildDemoData, OLD_DEMO_PRODUCT_IDS } from '../src/lib/demo'
 import { DEFAULT_CATEGORIES, DEFAULT_SETTINGS, EMPTY_DATA } from '../src/lib/defaults'
 import { uid } from '../src/lib/id'
 import { salePrice } from '../src/lib/product'
@@ -113,31 +113,42 @@ async function seedIfEmpty(): Promise<void> {
       'write',
     )
   }
-  const prods = await db.execute('SELECT COUNT(*) AS n FROM products')
-  if (num(prods.rows[0]?.n) === 0) {
-    const demo = buildDemoData()
-    await db.batch(
-      demo.products.map((p) => ({
-        sql: `INSERT INTO products (id, name, price, cost, quantity, category, description, image, images_json, discount_percent, created_at, updated_at)
-              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        args: [
-          p.id,
-          p.name,
-          p.price,
-          p.cost,
-          p.quantity,
-          p.category,
-          p.description,
-          p.image,
-          JSON.stringify(p.images ?? []),
-          p.discountPercent ?? 0,
-          p.createdAt,
-          p.updatedAt,
-        ],
-      })),
-      'write',
-    )
-  }
+  await syncExampleCatalog()
+}
+
+async function syncExampleCatalog(): Promise<void> {
+  const db = await ensureSchema()
+  const demo = buildDemoData()
+  const deletes = OLD_DEMO_PRODUCT_IDS.map((id) => ({ sql: 'DELETE FROM products WHERE id = ?', args: [id] }))
+  const inserts = demo.products.map((p) => ({
+    sql: `INSERT INTO products (id, name, price, cost, quantity, category, description, image, images_json, discount_percent, created_at, updated_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          ON CONFLICT(id) DO UPDATE SET
+            name = excluded.name,
+            price = excluded.price,
+            cost = excluded.cost,
+            category = excluded.category,
+            description = excluded.description,
+            image = excluded.image,
+            images_json = excluded.images_json,
+            discount_percent = excluded.discount_percent,
+            updated_at = excluded.updated_at`,
+    args: [
+      p.id,
+      p.name,
+      p.price,
+      p.cost,
+      p.quantity,
+      p.category,
+      p.description,
+      p.image,
+      JSON.stringify(p.images ?? []),
+      p.discountPercent ?? 0,
+      p.createdAt,
+      p.updatedAt,
+    ],
+  }))
+  await db.batch([...deletes, ...inserts], 'write')
 }
 
 async function ensureMerchantUser(passwordHash?: string): Promise<void> {
