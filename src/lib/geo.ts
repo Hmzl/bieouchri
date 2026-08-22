@@ -32,7 +32,7 @@ export async function getCurrentPosition(): Promise<GeoPoint> {
   })
 }
 
-export async function reverseGeocode(lat: number, lng: number, lang = 'fr'): Promise<string> {
+export async function reverseGeocode(lat: number, lng: number, lang = 'ar'): Promise<string> {
   const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&accept-language=${lang}`
   const res = await fetch(url, {
     headers: { Accept: 'application/json' },

@@ -22,14 +22,14 @@ const I18nContext = createContext<I18nValue | null>(null)
 function loadPrefs(): Prefs {
   try {
     const raw = localStorage.getItem(PREFS_KEY)
-    if (!raw) return { lang: 'fr', theme: 'light' }
+    if (!raw) return { lang: 'ar', theme: 'light' }
     const parsed = JSON.parse(raw) as Partial<Prefs>
     return {
-      lang: parsed.lang === 'ar' ? 'ar' : 'fr',
+      lang: parsed.lang === 'fr' ? 'fr' : 'ar',
       theme: parsed.theme === 'dark' ? 'dark' : 'light',
     }
   } catch {
-    return { lang: 'fr', theme: 'light' }
+    return { lang: 'ar', theme: 'light' }
   }
 }
 

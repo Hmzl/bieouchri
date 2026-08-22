@@ -1,7 +1,7 @@
 export type Lang = 'fr' | 'ar'
 export type Theme = 'light' | 'dark'
 
-export const PREFS_KEY = 'awani-chawki-prefs'
+export const PREFS_KEY = 'awani-chawki-prefs-v2'
 
 const fr: Record<string, string> = {
   'nav.home': 'Accueil',

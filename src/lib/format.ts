@@ -1,6 +1,6 @@
 import type { Lang } from '../i18n/translations'
 
-let currentLang: Lang = 'fr'
+let currentLang: Lang = 'ar'
 
 export function setFormatLocale(lang: Lang): void {
   currentLang = lang

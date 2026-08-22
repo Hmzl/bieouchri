@@ -11,7 +11,7 @@ export function buildOrderMessage(
   storeName: string,
   symbol: string,
   currency: string,
-  lang: Lang = 'fr',
+  lang: Lang = 'ar',
 ): string {
   const t = (key: string, vars?: Record<string, string | number>) => translate(lang, key, vars)
   const money = (n: number) => formatMoney(n, symbol, currency)
@@ -56,7 +56,7 @@ export function buildAccessMessage(
   storeName: string,
   username: string,
   password: string,
-  lang: Lang = 'fr',
+  lang: Lang = 'ar',
 ): string {
   const t = (key: string, vars?: Record<string, string | number>) => translate(lang, key, vars)
   return [
