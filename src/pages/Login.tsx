@@ -10,7 +10,7 @@ export function Login() {
   const navigate = useNavigate()
   const location = useLocation()
   const from = (location.state as { from?: string } | null)?.from ?? '/merchant'
-  const [username, setUsername] = useState('awani')
+  const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [info, setInfo] = useState('')
@@ -61,7 +61,6 @@ export function Login() {
         <p className="eyebrow">{t('login.kicker')}</p>
         <h1>{t('login.title')}</h1>
         <p className="lede">{t('login.lead')}</p>
-        <p className="muted">{t('login.hint')}</p>
       </div>
       <form className="form" onSubmit={(e) => void submit(e)}>
         <label className="field">

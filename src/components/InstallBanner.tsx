@@ -1,6 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import { useI18n } from '../i18n/I18nContext'
-import { canUseNativeInstallPrompt, checkRelatedAppsInstalled, installHint, isAppInstalled, markAppInstalled, rememberIfInstalled } from '../lib/install'
+import {
+  checkRelatedAppsInstalled,
+  installHint,
+  isAppInstalled,
+  markAppInstalled,
+  rememberIfInstalled,
+} from '../lib/install'
 import { IconClose, IconDownload, IconShare } from './Icons'
 import { Logo } from './Logo'
 
@@ -18,21 +24,25 @@ export function InstallBanner() {
   const [visible, setVisible] = useState(false)
   const [help, setHelp] = useState(false)
   const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(null)
-  const deferredRef = useRef<BeforeInstallPromptEvent | null>(null)
+  const installedRef = useRef(rememberIfInstalled())
 
   useEffect(() => {
-    if (rememberIfInstalled() || sessionStorage.getItem(DISMISS_KEY)) return
+    if (installedRef.current || sessionStorage.getItem(DISMISS_KEY)) return
 
     const hideInstalled = () => {
+      installedRef.current = true
       markAppInstalled()
       setVisible(false)
     }
 
+    if (isAppInstalled()) {
+      hideInstalled()
+      return
+    }
+
     const onPrompt = (event: Event) => {
       event.preventDefault()
-      const next = event as BeforeInstallPromptEvent
-      deferredRef.current = next
-      setDeferred(next)
+      setDeferred(event as BeforeInstallPromptEvent)
     }
 
     window.addEventListener('beforeinstallprompt', onPrompt)
@@ -50,8 +60,7 @@ export function InstallBanner() {
     sessionStorage.setItem(ENTERED_KEY, String(started))
     const wait = Math.max(0, DELAY_MS - (Date.now() - started))
     const timer = window.setTimeout(() => {
-      if (rememberIfInstalled() || sessionStorage.getItem(DISMISS_KEY)) return
-      if (canUseNativeInstallPrompt() && !deferredRef.current) return
+      if (installedRef.current || isAppInstalled() || sessionStorage.getItem(DISMISS_KEY)) return
       setVisible(true)
     }, wait)
 

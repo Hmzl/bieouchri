@@ -45,6 +45,10 @@ export function Settings() {
       setError(t('settings.errUser'))
       return
     }
+    if (password && password.length < 4) {
+      setError(t('settings.errPassLen'))
+      return
+    }
     if (password && password !== password2) {
       setError(t('settings.errPass'))
       return
@@ -134,6 +138,7 @@ export function Settings() {
         </label>
 
         <h2 className="section-title">{t('settings.account')}</h2>
+        <p className="muted">{t('settings.accountHint')}</p>
         <label className="field">
           <span>{t('settings.user')}</span>
           <input

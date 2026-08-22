@@ -230,17 +230,9 @@ export async function verifyLogin(username: string, password: string): Promise<b
   const settingsRow = settingsRes.rows[0] as Record<string, unknown> | undefined
   const storedUser = str(userRow?.username || settingsRow?.username, DEFAULT_USERNAME).trim().toLowerCase()
   const storedHash = str(userRow?.password_hash || settingsRow?.password_hash)
-
-  const matchesUser = incoming === storedUser || incoming === DEFAULT_USERNAME
-  const matchesHash = storedHash ? (await sha256Hex(password)) === storedHash : password === DEFAULT_PASSWORD
-  const matchesDefault = incoming === DEFAULT_USERNAME && password === DEFAULT_PASSWORD
-
-  if (matchesUser && matchesHash) return true
-  if (matchesDefault) {
-    await writeDefaultMerchant()
-    return true
-  }
-  return false
+  if (incoming !== storedUser) return false
+  if (storedHash) return (await sha256Hex(password)) === storedHash
+  return password === DEFAULT_PASSWORD
 }
 
 export async function saveSettings(input: Settings, newPassword?: string): Promise<Settings> {
