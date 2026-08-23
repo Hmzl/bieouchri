@@ -1,6 +1,6 @@
 import { createClient, type Client } from '@libsql/client/web'
 
-type DbGlobal = typeof globalThis & { __awaniDb?: Client; __awaniSchemaReady?: boolean }
+type DbGlobal = typeof globalThis & { __awaniDb?: Client; __awaniSchemaReady?: boolean; __awaniBarcodeReady?: boolean }
 
 function g(): DbGlobal {
   return globalThis as DbGlobal
@@ -9,6 +9,7 @@ function g(): DbGlobal {
 export function setDbClient(next: Client): void {
   g().__awaniDb = next
   g().__awaniSchemaReady = false
+  g().__awaniBarcodeReady = false
 }
 
 export function getDb(): Client {
@@ -44,8 +45,8 @@ export function authSecret(): string {
 
 export async function ensureSchema(): Promise<Client> {
   const db = getDb()
-  if (g().__awaniSchemaReady) return db
-  await db.executeMultiple(`
+  if (!g().__awaniSchemaReady) {
+    await db.executeMultiple(`
     CREATE TABLE IF NOT EXISTS settings (
       id INTEGER PRIMARY KEY CHECK (id = 1),
       store_name TEXT NOT NULL,
@@ -74,6 +75,7 @@ export async function ensureSchema(): Promise<Client> {
       image TEXT NOT NULL DEFAULT '',
       images_json TEXT NOT NULL DEFAULT '[]',
       discount_percent REAL NOT NULL DEFAULT 0,
+      barcode TEXT NOT NULL DEFAULT '',
       created_at TEXT NOT NULL,
       updated_at TEXT NOT NULL
     );
@@ -104,6 +106,15 @@ export async function ensureSchema(): Promise<Client> {
       password_hash TEXT NOT NULL
     );
   `)
-  g().__awaniSchemaReady = true
+    g().__awaniSchemaReady = true
+  }
+  if (!g().__awaniBarcodeReady) {
+    try {
+      await db.execute("ALTER TABLE products ADD COLUMN barcode TEXT NOT NULL DEFAULT ''")
+    } catch {
+      /* column already exists */
+    }
+    g().__awaniBarcodeReady = true
+  }
   return db
 }

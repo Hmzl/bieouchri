@@ -1,5 +1,62 @@
 const INSTALLED_KEY = 'awani-chawki-pwa-installed'
 
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>
+}
+
+type InstallWindow = Window & { __awaniInstall?: BeforeInstallPromptEvent | null }
+
+let deferredPrompt: BeforeInstallPromptEvent | null = null
+const promptListeners = new Set<() => void>()
+
+function installWindow(): InstallWindow {
+  return window as InstallWindow
+}
+
+function setDeferredPrompt(event: BeforeInstallPromptEvent | null): void {
+  deferredPrompt = event
+  installWindow().__awaniInstall = event
+}
+
+export function initInstallCapture(): void {
+  const early = installWindow().__awaniInstall
+  if (early) setDeferredPrompt(early)
+
+  window.addEventListener('beforeinstallprompt', (event) => {
+    event.preventDefault()
+    setDeferredPrompt(event as BeforeInstallPromptEvent)
+    promptListeners.forEach((fn) => fn())
+  })
+  window.addEventListener('appinstalled', () => {
+    setDeferredPrompt(null)
+    markAppInstalled()
+  })
+}
+
+export function registerServiceWorker(): void {
+  if (!('serviceWorker' in navigator)) return
+  void navigator.serviceWorker.register('/sw.js', { scope: '/', updateViaCache: 'none' })
+}
+
+export function onInstallPromptReady(fn: () => void): () => void {
+  promptListeners.add(fn)
+  if (deferredPrompt) fn()
+  return () => {
+    promptListeners.delete(fn)
+  }
+}
+
+export function consumeInstallPrompt(): BeforeInstallPromptEvent | null {
+  const event = deferredPrompt
+  setDeferredPrompt(null)
+  return event
+}
+
+export function hasInstallPrompt(): boolean {
+  return Boolean(deferredPrompt)
+}
+
 export function markAppInstalled(): void {
   localStorage.setItem(INSTALLED_KEY, '1')
 }
@@ -29,11 +86,10 @@ export function captureInstallState(): boolean {
     markAppInstalled()
     return true
   }
-  return localStorage.getItem(INSTALLED_KEY) === '1'
+  return isLaunchedFromHomeScreen()
 }
 
 export function isAppInstalled(): boolean {
-  if (localStorage.getItem(INSTALLED_KEY) === '1') return true
   return isLaunchedFromHomeScreen()
 }
 
@@ -41,20 +97,6 @@ export function rememberIfInstalled(): boolean {
   return captureInstallState()
 }
 
-export function canUseNativeInstallPrompt(): boolean {
-  if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) return false
-  if (!window.isSecureContext) return false
-  return /Chrome|Chromium|Edg|SamsungBrowser/i.test(navigator.userAgent)
-}
-
 export function installHint(): 'ios' | 'android' {
   return /iPhone|iPad|iPod/i.test(navigator.userAgent) ? 'ios' : 'android'
-}
-
-export function checkRelatedAppsInstalled(): Promise<boolean> {
-  const nav = navigator as Navigator & {
-    getInstalledRelatedApps?: () => Promise<unknown[]>
-  }
-  if (!nav.getInstalledRelatedApps) return Promise.resolve(false)
-  return nav.getInstalledRelatedApps().then((apps) => apps.length > 0)
 }

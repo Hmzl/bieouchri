@@ -24,6 +24,7 @@ export function ProductForm() {
   const [description, setDescription] = useState(existing?.description ?? '')
   const [images, setImages] = useState(() => (existing ? productImages(existing) : []))
   const [discount, setDiscount] = useState(existing ? String(existing.discountPercent || '') : '')
+  const [barcode, setBarcode] = useState(existing?.barcode ?? '')
   const [newCat, setNewCat] = useState('')
   const [error, setError] = useState('')
   const [confirmDelete, setConfirmDelete] = useState(false)
@@ -77,6 +78,7 @@ export function ProductForm() {
         image: images[0] ?? '',
         images: images.slice(0, MAX_PRODUCT_IMAGES),
         discountPercent: discountN,
+        barcode: barcode.trim(),
       })
       navigate('/merchant/produits')
     } catch (err) {
@@ -132,6 +134,18 @@ export function ProductForm() {
               ? t('form.discountHint', { price: formatMoney(preview) })
               : t('form.discountNone')}
           </small>
+        </label>
+
+        <label className="field">
+          <span>{t('form.barcode')}</span>
+          <input
+            value={barcode}
+            onChange={(e) => setBarcode(e.target.value)}
+            autoCapitalize="none"
+            autoComplete="off"
+            placeholder={t('form.barcodePh')}
+          />
+          <small>{t('form.barcodeHint')}</small>
         </label>
 
         <label className="field">

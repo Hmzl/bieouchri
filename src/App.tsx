@@ -80,10 +80,10 @@ export default function App() {
     <Routes>
       <Route element={<Phone nav="client" />}>
         <Route path="/" element={<Catalog />} />
+        <Route path="/produit/:id" element={<ProductDetail />} />
         <Route path="/panier" element={<Cart />} />
       </Route>
       <Route element={<Phone />}>
-        <Route path="/produit/:id" element={<ProductDetail />} />
         <Route path="/commande" element={<Checkout />} />
         <Route path="/merci" element={<Thanks />} />
         <Route path="/connexion" element={<Login />} />

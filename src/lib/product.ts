@@ -27,6 +27,16 @@ export function hasDiscount(product: Pick<Product, 'discountPercent'>): boolean 
   return discountPercent(product) > 0
 }
 
+export function normalizeBarcode(value: string): string {
+  return value.replace(/[\s-]/g, '').trim()
+}
+
+export function findProductByBarcode(products: Product[], code: string): Product | undefined {
+  const needle = normalizeBarcode(code).toLowerCase()
+  if (!needle) return undefined
+  return products.find((p) => normalizeBarcode(p.barcode || '').toLowerCase() === needle)
+}
+
 export function normalizeProduct(product: Product): Product {
   const images = productImages(product)
   return {
@@ -34,5 +44,6 @@ export function normalizeProduct(product: Product): Product {
     images,
     image: images[0] ?? '',
     discountPercent: discountPercent(product),
+    barcode: normalizeBarcode(product.barcode || ''),
   }
 }

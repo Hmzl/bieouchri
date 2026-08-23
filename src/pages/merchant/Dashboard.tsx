@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import { useStore } from '../../context/StoreContext'
 import { computeAnalytics, lowStockProducts, outOfStockProducts } from '../../lib/analytics'
 import { formatDateLong, formatMoney, greeting, initials } from '../../lib/format'
-import { IconAlert, IconPlus } from '../../components/Icons'
+import { IconAlert, IconPlus, IconScan } from '../../components/Icons'
 import { Logo } from '../../components/Logo'
 import { ProductImage } from '../../components/ProductImage'
 import { useI18n } from '../../i18n/I18nContext'
@@ -73,7 +73,8 @@ export function Dashboard() {
           <IconPlus size={18} />
           {t('dash.addProduct')}
         </Link>
-        <Link to="/merchant/vente" className="btn btn-secondary">
+        <Link to="/merchant/vente?scan=1" className="btn btn-secondary">
+          <IconScan size={18} />
           {t('dash.quickSale')}
         </Link>
       </div>

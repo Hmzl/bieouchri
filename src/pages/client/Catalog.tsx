@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useStore } from '../../context/StoreContext'
-import { IconSearch } from '../../components/Icons'
+import { IconCart, IconSearch } from '../../components/Icons'
 import { ProductImage } from '../../components/ProductImage'
 import { Logo } from '../../components/Logo'
 import { EmptyState } from '../../components/EmptyState'
@@ -9,18 +9,23 @@ import { PriceTag } from '../../components/PriceTag'
 import { useI18n } from '../../i18n/I18nContext'
 
 export function Catalog() {
-  const { data } = useStore()
+  const { data, cart } = useStore()
   const { t, cat } = useI18n()
   const navigate = useNavigate()
   const [q, setQ] = useState('')
   const [category, setCategory] = useState('tous')
   const available = (data.products ?? []).filter((p) => p.quantity > 0)
   const cats = ['tous', ...new Set(available.map((p) => p.category))]
+  const cartCount = cart.reduce((s, i) => s + i.quantity, 0)
 
   const filtered = useMemo(() => {
     const query = q.trim().toLowerCase()
     return available.filter((p) => {
-      const matchQ = !query || p.name.toLowerCase().includes(query) || p.description.toLowerCase().includes(query)
+      const matchQ =
+        !query ||
+        p.name.toLowerCase().includes(query) ||
+        p.description.toLowerCase().includes(query) ||
+        (p.barcode || '').toLowerCase().includes(query)
       const matchCat = category === 'tous' || p.category === category
       return matchQ && matchCat
     })
@@ -42,6 +47,12 @@ export function Catalog() {
         <IconSearch size={18} />
         <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('search')} type="search" />
       </label>
+
+      <Link to="/panier" className="btn btn-secondary btn-block">
+        <IconCart size={18} />
+        {t('product.seeCart')}
+        {cartCount > 0 && <span className="cart-count">{cartCount > 9 ? '9+' : cartCount}</span>}
+      </Link>
 
       <div className="chips">
         {cats.map((c) => (

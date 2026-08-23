@@ -1,21 +1,20 @@
 import { useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import { useStore } from '../../context/StoreContext'
 import { Header } from '../../components/Header'
 import { ProductImage } from '../../components/ProductImage'
 import { PriceTag } from '../../components/PriceTag'
 import { QtyStepper } from '../../components/QtyStepper'
+import { IconCart } from '../../components/Icons'
 import { useI18n } from '../../i18n/I18nContext'
 import { hasDiscount, productImages, discountPercent } from '../../lib/product'
 
 export function ProductDetail() {
   const { id } = useParams()
-  const navigate = useNavigate()
   const { data, addToCart } = useStore()
   const { t, cat } = useI18n()
   const product = data.products.find((p) => p.id === id)
   const [qty, setQty] = useState(1)
-  const [added, setAdded] = useState(false)
   const [photo, setPhoto] = useState(0)
 
   if (!product) {
@@ -33,11 +32,10 @@ export function ProductDetail() {
   function add() {
     if (!product) return
     addToCart(product.id, qty)
-    setAdded(true)
   }
 
   return (
-    <div className="page">
+    <div className="page page--nav">
       <Header title={product.name} subtitle={cat(product.category)} backTo="/" />
       <div className="detail-hero">
         {current ? (
@@ -83,11 +81,10 @@ export function ProductDetail() {
           <button type="button" className="btn btn-primary btn-block" onClick={add}>
             {t('product.add')}
           </button>
-          {added && (
-            <button type="button" className="btn btn-secondary btn-block" onClick={() => navigate('/panier')}>
-              {t('product.seeCart')}
-            </button>
-          )}
+          <Link to="/panier" className="btn btn-secondary btn-block">
+            <IconCart size={18} />
+            {t('product.seeCart')}
+          </Link>
         </>
       ) : (
         <p className="field-error">{t('product.unavailable')}</p>

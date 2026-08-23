@@ -40,6 +40,7 @@ function mapProduct(row: Record<string, unknown>): Product {
     image: str(row.image) || images[0] || '',
     images,
     discountPercent: num(row.discount_percent),
+    barcode: str(row.barcode),
     createdAt: str(row.created_at),
     updatedAt: str(row.updated_at),
   }
@@ -121,8 +122,8 @@ async function syncExampleCatalog(): Promise<void> {
   const demo = buildDemoData()
   const deletes = OLD_DEMO_PRODUCT_IDS.map((id) => ({ sql: 'DELETE FROM products WHERE id = ?', args: [id] }))
   const inserts = demo.products.map((p) => ({
-    sql: `INSERT INTO products (id, name, price, cost, quantity, category, description, image, images_json, discount_percent, created_at, updated_at)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    sql: `INSERT INTO products (id, name, price, cost, quantity, category, description, image, images_json, discount_percent, barcode, created_at, updated_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
           ON CONFLICT(id) DO UPDATE SET
             name = excluded.name,
             price = excluded.price,
@@ -132,6 +133,7 @@ async function syncExampleCatalog(): Promise<void> {
             image = excluded.image,
             images_json = excluded.images_json,
             discount_percent = excluded.discount_percent,
+            barcode = excluded.barcode,
             updated_at = excluded.updated_at`,
     args: [
       p.id,
@@ -144,6 +146,7 @@ async function syncExampleCatalog(): Promise<void> {
       p.image,
       JSON.stringify(p.images ?? []),
       p.discountPercent ?? 0,
+      p.barcode ?? '',
       p.createdAt,
       p.updatedAt,
     ],
@@ -322,16 +325,18 @@ export async function upsertProduct(
     image: images[0] ?? '',
     images,
     discountPercent: input.discountPercent,
+    barcode: (input.barcode ?? '').replace(/[\s-]/g, '').trim(),
     createdAt,
     updatedAt: now,
   }
   await db.execute({
-    sql: `INSERT INTO products (id, name, price, cost, quantity, category, description, image, images_json, discount_percent, created_at, updated_at)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    sql: `INSERT INTO products (id, name, price, cost, quantity, category, description, image, images_json, discount_percent, barcode, created_at, updated_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
           ON CONFLICT(id) DO UPDATE SET
             name=excluded.name, price=excluded.price, cost=excluded.cost, quantity=excluded.quantity,
             category=excluded.category, description=excluded.description, image=excluded.image,
-            images_json=excluded.images_json, discount_percent=excluded.discount_percent, updated_at=excluded.updated_at`,
+            images_json=excluded.images_json, discount_percent=excluded.discount_percent,
+            barcode=excluded.barcode, updated_at=excluded.updated_at`,
     args: [
       product.id,
       product.name,
@@ -343,6 +348,7 @@ export async function upsertProduct(
       product.image,
       JSON.stringify(product.images),
       product.discountPercent,
+      product.barcode,
       product.createdAt,
       product.updatedAt,
     ],
@@ -504,8 +510,8 @@ async function writeFullStore(data: AppData): Promise<void> {
   })
   const catStmt = data.categories.map((name) => ({ sql: 'INSERT OR IGNORE INTO categories (name) VALUES (?)', args: [name] }))
   const prodStmt = data.products.map((p) => ({
-    sql: `INSERT INTO products (id, name, price, cost, quantity, category, description, image, images_json, discount_percent, created_at, updated_at)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    sql: `INSERT INTO products (id, name, price, cost, quantity, category, description, image, images_json, discount_percent, barcode, created_at, updated_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     args: [
       p.id,
       p.name,
@@ -517,6 +523,7 @@ async function writeFullStore(data: AppData): Promise<void> {
       p.image,
       JSON.stringify(p.images ?? []),
       p.discountPercent ?? 0,
+      p.barcode ?? '',
       p.createdAt,
       p.updatedAt,
     ],

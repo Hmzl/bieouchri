@@ -72,6 +72,15 @@ export function IconPlus(p: IconProps) {
   )
 }
 
+export function IconScan(p: IconProps) {
+  return (
+    <I {...p}>
+      <path d="M4 7V5h3M17 5h3v3M20 17v3h-3M7 20H4v-3" />
+      <path d="M7 12h10" />
+    </I>
+  )
+}
+
 export function IconSearch(p: IconProps) {
   return (
     <I {...p}>

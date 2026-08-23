@@ -12,6 +12,7 @@ export interface Product {
   image: string
   images: string[]
   discountPercent: number
+  barcode: string
   createdAt: string
   updatedAt: string
 }
