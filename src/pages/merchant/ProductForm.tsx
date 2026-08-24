@@ -4,9 +4,11 @@ import { useStore } from '../../context/StoreContext'
 import { Header } from '../../components/Header'
 import { PhotoPicker } from '../../components/PhotoPicker'
 import { Modal } from '../../components/Modal'
+import { BarcodeScan } from '../../components/BarcodeScan'
+import { IconScan } from '../../components/Icons'
 import { useI18n } from '../../i18n/I18nContext'
 import { formatMoney } from '../../lib/format'
-import { MAX_PRODUCT_IMAGES, productImages, salePrice } from '../../lib/product'
+import { findProductByBarcode, MAX_PRODUCT_IMAGES, productImages, salePrice } from '../../lib/product'
 
 export function ProductForm() {
   const { id } = useParams()
@@ -25,6 +27,7 @@ export function ProductForm() {
   const [images, setImages] = useState(() => (existing ? productImages(existing) : []))
   const [discount, setDiscount] = useState(existing ? String(existing.discountPercent || '') : '')
   const [barcode, setBarcode] = useState(existing?.barcode ?? '')
+  const [scanOpen, setScanOpen] = useState(false)
   const [newCat, setNewCat] = useState('')
   const [error, setError] = useState('')
   const [confirmDelete, setConfirmDelete] = useState(false)
@@ -86,6 +89,19 @@ export function ProductForm() {
     }
   }
 
+  function onScanned(code: string) {
+    const value = code.trim()
+    if (!value) return
+    setBarcode(value)
+    setScanOpen(false)
+    const other = findProductByBarcode(data.products, value)
+    if (other && other.id !== existing?.id) {
+      setError(t('form.barcodeDup', { name: other.name }))
+      return
+    }
+    setError('')
+  }
+
   async function addCat() {
     const value = newCat.trim()
     if (!value) return
@@ -138,13 +154,26 @@ export function ProductForm() {
 
         <label className="field">
           <span>{t('form.barcode')}</span>
-          <input
-            value={barcode}
-            onChange={(e) => setBarcode(e.target.value)}
-            autoCapitalize="none"
-            autoComplete="off"
-            placeholder={t('form.barcodePh')}
-          />
+          <div className="barcode-row">
+            <input
+              value={barcode}
+              onChange={(e) => setBarcode(e.target.value)}
+              autoCapitalize="none"
+              autoComplete="off"
+              placeholder={t('form.barcodePh')}
+            />
+            <button
+              type="button"
+              className="scan-btn"
+              onClick={() => {
+                setError('')
+                setScanOpen(true)
+              }}
+              aria-label={t('form.scan')}
+            >
+              <IconScan />
+            </button>
+          </div>
           <small>{t('form.barcodeHint')}</small>
         </label>
 
@@ -217,6 +246,13 @@ export function ProductForm() {
       >
         <p>{t('form.deleteText')}</p>
       </Modal>
+
+      <BarcodeScan
+        open={scanOpen}
+        submitLabel={t('form.scanUse')}
+        onClose={() => setScanOpen(false)}
+        onDetected={onScanned}
+      />
     </div>
   )
 }

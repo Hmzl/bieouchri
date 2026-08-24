@@ -79,21 +79,23 @@ export function InstallBanner() {
   const hint = installHint() === 'ios' ? t('install.ios') : canPrompt ? t('install.text') : t('install.android')
 
   return (
-    <aside className="install-banner" role="dialog" aria-label={t('install.title')}>
-      <button type="button" className="install-banner-close" onClick={dismiss} aria-label={t('install.close')}>
-        <IconClose size={18} />
-      </button>
-      <div className="install-banner-icon" aria-hidden="true">
-        <img src="/logo.png" alt="" width={56} height={56} className="brand-logo brand-logo-md" />
-      </div>
-      <div className="install-banner-copy">
-        <strong>{t('install.title')}</strong>
-        <p>{hint}</p>
-      </div>
-      <button type="button" className="btn btn-primary install-banner-btn" onClick={() => void download()}>
-        <IconDownload size={18} />
-        {t('install.btn')}
-      </button>
-    </aside>
+    <div className="install-overlay" role="presentation">
+      <aside className="install-banner" role="dialog" aria-modal="true" aria-label={t('install.title')}>
+        <button type="button" className="install-banner-close" onClick={dismiss} aria-label={t('install.close')}>
+          <IconClose size={18} />
+        </button>
+        <div className="install-banner-icon" aria-hidden="true">
+          <img src="/logo.png" alt="" width={72} height={72} className="brand-logo brand-logo-lg" />
+        </div>
+        <div className="install-banner-copy">
+          <strong>{t('install.title')}</strong>
+          <p>{hint}</p>
+        </div>
+        <button type="button" className="btn btn-primary install-banner-btn" onClick={() => void download()}>
+          <IconDownload size={18} />
+          {t('install.btn')}
+        </button>
+      </aside>
+    </div>
   )
 }
