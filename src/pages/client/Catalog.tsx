@@ -7,6 +7,7 @@ import { Logo } from '../../components/Logo'
 import { EmptyState } from '../../components/EmptyState'
 import { PriceTag } from '../../components/PriceTag'
 import { useI18n } from '../../i18n/I18nContext'
+import { hasProductImage } from '../../lib/product'
 
 export function Catalog() {
   const { data, cart } = useStore()
@@ -14,7 +15,7 @@ export function Catalog() {
   const navigate = useNavigate()
   const [q, setQ] = useState('')
   const [category, setCategory] = useState('tous')
-  const available = (data.products ?? []).filter((p) => p.quantity > 0)
+  const available = (data.products ?? []).filter((p) => p.quantity > 0 && hasProductImage(p))
   const cats = ['tous', ...new Set(available.map((p) => p.category))]
   const cartCount = cart.reduce((s, i) => s + i.quantity, 0)
 

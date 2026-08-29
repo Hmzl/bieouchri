@@ -2,7 +2,7 @@ import type { AppData, Invoice, Order, OrderStatus, Product, Settings } from '..
 import { buildDemoData, OLD_DEMO_PRODUCT_IDS } from '../src/lib/demo'
 import { DEFAULT_CATEGORIES, DEFAULT_SETTINGS, EMPTY_DATA } from '../src/lib/defaults'
 import { uid } from '../src/lib/id'
-import { salePrice } from '../src/lib/product'
+import { hasProductImage, salePrice } from '../src/lib/product'
 import { generatePassword, sha256Hex } from './crypto'
 import { ensureSchema } from './db'
 
@@ -221,7 +221,7 @@ export function publicStore(data: AppData): AppData {
       username: '',
       passwordHash: '',
     },
-    products: data.products.map((p) => ({ ...p, cost: 0 })),
+    products: data.products.filter(hasProductImage).map((p) => ({ ...p, cost: 0 })),
   }
 }
 

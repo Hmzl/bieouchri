@@ -7,13 +7,13 @@ import { PriceTag } from '../../components/PriceTag'
 import { QtyStepper } from '../../components/QtyStepper'
 import { IconCart } from '../../components/Icons'
 import { useI18n } from '../../i18n/I18nContext'
-import { hasDiscount, productImages, discountPercent } from '../../lib/product'
+import { hasDiscount, hasProductImage, productImages, discountPercent } from '../../lib/product'
 
 export function ProductDetail() {
   const { id } = useParams()
   const { data, addToCart } = useStore()
   const { t, cat } = useI18n()
-  const product = data.products.find((p) => p.id === id)
+  const product = data.products.find((p) => p.id === id && hasProductImage(p))
   const [qty, setQty] = useState(1)
   const [photo, setPhoto] = useState(0)
 

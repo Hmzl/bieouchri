@@ -11,6 +11,10 @@ export function coverImage(product: Pick<Product, 'image' | 'images'>): string {
   return productImages(product)[0] ?? ''
 }
 
+export function hasProductImage(product: Pick<Product, 'image' | 'images'>): boolean {
+  return productImages(product).length > 0
+}
+
 export function discountPercent(product: Pick<Product, 'discountPercent'>): number {
   const n = Number(product.discountPercent)
   if (!Number.isFinite(n)) return 0
