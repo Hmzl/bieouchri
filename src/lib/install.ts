@@ -36,6 +36,12 @@ export function initInstallCapture(): void {
 
 export function registerServiceWorker(): void {
   if (!('serviceWorker' in navigator)) return
+  if (import.meta.env.DEV) {
+    void navigator.serviceWorker.getRegistrations().then((regs) => {
+      for (const reg of regs) void reg.unregister()
+    })
+    return
+  }
   void navigator.serviceWorker.register('/sw.js', { scope: '/', updateViaCache: 'none' })
 }
 
