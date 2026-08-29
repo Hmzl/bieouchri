@@ -3,6 +3,7 @@ import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { Logo } from '../components/Logo'
 import { useStore } from '../context/StoreContext'
 import { useI18n } from '../i18n/I18nContext'
+import { normalizeLoginText } from '../lib/auth'
 
 export function Login() {
   const { isMerchant, login, recoverViaWhatsApp } = useStore()
@@ -24,7 +25,7 @@ export function Login() {
     setInfo('')
     setBusy(true)
     try {
-      const ok = await login(username, password)
+      const ok = await login(normalizeLoginText(username, 'username'), normalizeLoginText(password, 'password'))
       if (!ok) {
         setError(t('login.error'))
         return
@@ -61,25 +62,33 @@ export function Login() {
         <p className="eyebrow">{t('login.kicker')}</p>
         <h1>{t('login.title')}</h1>
         <p className="lede">{t('login.lead')}</p>
+        <p className="muted">{t('login.sameAccount')}</p>
       </div>
       <form className="form" onSubmit={(e) => void submit(e)}>
-        <label className="field">
+        <label className="field field-ltr">
           <span>{t('login.user')}</span>
           <input
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             autoComplete="username"
             autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
+            dir="ltr"
             required
           />
         </label>
-        <label className="field">
+        <label className="field field-ltr">
           <span>{t('login.pass')}</span>
           <input
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             autoComplete="current-password"
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
+            dir="ltr"
             required
           />
         </label>

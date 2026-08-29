@@ -3,6 +3,7 @@ import { buildDemoData, OLD_DEMO_PRODUCT_IDS } from '../src/lib/demo'
 import { DEFAULT_CATEGORIES, DEFAULT_SETTINGS, EMPTY_DATA } from '../src/lib/defaults'
 import { uid } from '../src/lib/id'
 import { hasProductImage, productImages, salePrice } from '../src/lib/product'
+import { normalizeLoginText } from '../src/lib/auth'
 import { generatePassword, sha256Hex } from './crypto'
 import { ensureSchema } from './db'
 
@@ -250,18 +251,19 @@ export function merchantStore(data: AppData): AppData {
 export async function verifyLogin(username: string, password: string): Promise<boolean> {
   await seedIfEmpty()
   const db = await ensureSchema()
-  const incoming = username.trim().toLowerCase()
-  if (!incoming || !password) return false
+  const incoming = normalizeLoginText(username, 'username')
+  const incomingPassword = normalizeLoginText(password, 'password')
+  if (!incoming || !incomingPassword) return false
 
   const userRes = await db.execute('SELECT username, password_hash FROM users WHERE id = 1')
   const settingsRes = await db.execute('SELECT username, password_hash FROM settings WHERE id = 1')
   const userRow = userRes.rows[0] as Record<string, unknown> | undefined
   const settingsRow = settingsRes.rows[0] as Record<string, unknown> | undefined
-  const storedUser = str(userRow?.username || settingsRow?.username, DEFAULT_USERNAME).trim().toLowerCase()
+  const storedUser = normalizeLoginText(str(userRow?.username || settingsRow?.username, DEFAULT_USERNAME), 'username')
   const storedHash = str(userRow?.password_hash || settingsRow?.password_hash)
   if (incoming !== storedUser) return false
-  if (storedHash) return (await sha256Hex(password)) === storedHash
-  return password === DEFAULT_PASSWORD
+  if (storedHash) return (await sha256Hex(incomingPassword)) === storedHash
+  return incomingPassword === DEFAULT_PASSWORD
 }
 
 export async function saveSettings(input: Settings, newPassword?: string): Promise<Settings> {
@@ -270,8 +272,9 @@ export async function saveSettings(input: Settings, newPassword?: string): Promi
   const current = await readStore()
   let passwordHash = current.settings.passwordHash
   if (newPassword && newPassword.length > 0) {
-    if (newPassword.length < 4) throw new Error('Le mot de passe doit contenir au moins 4 caractères.')
-    passwordHash = await sha256Hex(newPassword)
+    const nextPassword = normalizeLoginText(newPassword, 'password')
+    if (nextPassword.length < 4) throw new Error('Le mot de passe doit contenir au moins 4 caractères.')
+    passwordHash = await sha256Hex(nextPassword)
   }
   const next: Settings = {
     ...DEFAULT_SETTINGS,
@@ -280,7 +283,7 @@ export async function saveSettings(input: Settings, newPassword?: string): Promi
     merchantName: input.merchantName.trim(),
     whatsapp: input.whatsapp.trim(),
     address: input.address.trim(),
-    username: input.username.trim() || DEFAULT_USERNAME,
+    username: normalizeLoginText(input.username, 'username') || DEFAULT_USERNAME,
     passwordHash,
     currency: 'MAD',
     currencySymbol: 'DH',

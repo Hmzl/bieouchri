@@ -964,6 +964,12 @@ html[data-theme="dark"] .brand-logo {
   box-shadow: 0 0 0 3px rgba(18, 181, 168, 0.18);
 }
 
+.field-ltr input {
+  direction: ltr;
+  text-align: left;
+  unicode-bidi: isolate;
+}
+
 .field small {
   color: var(--muted);
 }

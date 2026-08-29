@@ -2,6 +2,18 @@ export const AUTH_KEY = 'awani-chawki-auth'
 export const DEFAULT_USERNAME = 'awani'
 export const DEFAULT_PASSWORD = 'chawki'
 
+const ARABIC_INDIC = '٠١٢٣٤٥٦٧٨٩'
+const EASTERN_ARABIC = '۰۱۲۳۴۵۶۷۸۹'
+
+export function normalizeLoginText(value: string, kind: 'username' | 'password' = 'password'): string {
+  let out = value.normalize('NFC')
+  out = out.replace(/[\u200B-\u200F\u202A-\u202E\u2066-\u2069\uFEFF]/g, '')
+  out = out.replace(/[٠-٩]/g, (digit) => String(ARABIC_INDIC.indexOf(digit)))
+  out = out.replace(/[۰-۹]/g, (digit) => String(EASTERN_ARABIC.indexOf(digit)))
+  out = out.trim()
+  return kind === 'username' ? out.toLowerCase() : out
+}
+
 export function generatePassword(length = 8): string {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789'
   const bytes = crypto.getRandomValues(new Uint8Array(length))
@@ -31,11 +43,12 @@ export async function verifyCredentials(
   storedUser: string,
   storedHash: string,
 ): Promise<boolean> {
-  const expectedUser = (storedUser || DEFAULT_USERNAME).trim().toLowerCase()
-  if (username.trim().toLowerCase() !== expectedUser) return false
+  const expectedUser = normalizeLoginText(storedUser || DEFAULT_USERNAME, 'username')
+  if (normalizeLoginText(username, 'username') !== expectedUser) return false
+  const incomingPassword = normalizeLoginText(password, 'password')
   if (storedHash) {
-    const incoming = await hashPassword(password)
+    const incoming = await hashPassword(incomingPassword)
     return incoming === storedHash
   }
-  return password === DEFAULT_PASSWORD
+  return incomingPassword === DEFAULT_PASSWORD
 }

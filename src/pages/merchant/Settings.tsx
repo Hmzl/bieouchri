@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useStore } from '../../context/StoreContext'
 import { Header } from '../../components/Header'
 import { LogoPicker } from '../../components/LogoPicker'
+import { normalizeLoginText } from '../../lib/auth'
 import { buildAccessMessage, digitsOnly, openWhatsApp } from '../../lib/whatsapp'
 import { useI18n } from '../../i18n/I18nContext'
 
@@ -41,15 +42,18 @@ export function Settings() {
       setError(t('settings.errDelivery'))
       return
     }
-    if (!username.trim()) {
+    const nextUser = normalizeLoginText(username, 'username')
+    const nextPass = password ? normalizeLoginText(password, 'password') : ''
+    const nextPass2 = password2 ? normalizeLoginText(password2, 'password') : ''
+    if (!nextUser) {
       setError(t('settings.errUser'))
       return
     }
-    if (password && password.length < 4) {
+    if (nextPass && nextPass.length < 4) {
       setError(t('settings.errPassLen'))
       return
     }
-    if (password && password !== password2) {
+    if (nextPass && nextPass !== nextPass2) {
       setError(t('settings.errPass'))
       return
     }
@@ -66,15 +70,15 @@ export function Settings() {
           currency: 'MAD',
           currencySymbol: 'DH',
           address: form.address.trim(),
-          username: username.trim(),
+          username: nextUser,
           logo: form.logo || '',
         },
-        password || undefined,
+        nextPass || undefined,
       )
-      if (password && whatsapp) {
+      if (nextPass && whatsapp) {
         openWhatsApp(
           whatsapp,
-          buildAccessMessage(form.storeName.trim() || 'Awani Chawki', username.trim(), password, lang),
+          buildAccessMessage(form.storeName.trim() || 'Awani Chawki', nextUser, nextPass, lang),
         )
       }
       setPassword('')
@@ -139,7 +143,7 @@ export function Settings() {
 
         <h2 className="section-title">{t('settings.account')}</h2>
         <p className="muted">{t('settings.accountHint')}</p>
-        <label className="field">
+        <label className="field field-ltr">
           <span>{t('settings.user')}</span>
           <input
             value={username}
@@ -149,9 +153,12 @@ export function Settings() {
             }}
             autoComplete="username"
             autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
+            dir="ltr"
           />
         </label>
-        <label className="field">
+        <label className="field field-ltr">
           <span>{t('settings.newPass')}</span>
           <input
             type="password"
@@ -161,16 +168,24 @@ export function Settings() {
               setSaved(false)
             }}
             autoComplete="new-password"
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
+            dir="ltr"
             placeholder={t('settings.newPassPh')}
           />
         </label>
-        <label className="field">
+        <label className="field field-ltr">
           <span>{t('settings.confirmPass')}</span>
           <input
             type="password"
             value={password2}
             onChange={(e) => setPassword2(e.target.value)}
             autoComplete="new-password"
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
+            dir="ltr"
           />
         </label>
 
