@@ -4,7 +4,7 @@ export const MAX_PRODUCT_IMAGES = 6
 
 export function productImages(product: Pick<Product, 'image' | 'images'>): string[] {
   const list = product.images?.length ? product.images : product.image ? [product.image] : []
-  return list.filter((src) => typeof src === 'string' && src.length > 0)
+  return list.filter((src) => typeof src === 'string' && src.trim().length > 0)
 }
 
 export function coverImage(product: Pick<Product, 'image' | 'images'>): string {

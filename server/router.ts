@@ -149,7 +149,13 @@ export async function handleApi(req: Request): Promise<Response> {
     return json({ error: 'not_found' }, 404)
   } catch (e) {
     const message = e instanceof Error ? e.message : 'server_error'
-    const status = message.startsWith('err.') || message.includes('invalide') || message.includes('caractères') ? 400 : 500
+    const status =
+      message.startsWith('err.') ||
+      message.startsWith('form.err') ||
+      message.includes('invalide') ||
+      message.includes('caractères')
+        ? 400
+        : 500
     return json({ error: message }, status)
   }
 }

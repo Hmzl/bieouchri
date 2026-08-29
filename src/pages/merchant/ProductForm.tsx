@@ -14,7 +14,7 @@ export function ProductForm() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { data, upsertProduct, deleteProduct, addCategory } = useStore()
-  const { t, cat } = useI18n()
+  const { t, cat, err } = useI18n()
   const existing = id && id !== 'nouveau' ? data.products.find((p) => p.id === id) : undefined
   const isNew = !existing
 
@@ -69,6 +69,10 @@ export function ProductForm() {
       setError(t('form.errQty'))
       return
     }
+    if (!images.length) {
+      setError(t('form.errPhoto'))
+      return
+    }
     try {
       await upsertProduct({
         id: existing?.id,
@@ -84,8 +88,8 @@ export function ProductForm() {
         barcode: barcode.trim(),
       })
       navigate('/merchant/produits')
-    } catch (err) {
-      setError(err instanceof Error ? err.message : t('form.errPrice'))
+    } catch (caught) {
+      setError(caught instanceof Error ? err(caught.message) : t('form.errPrice'))
     }
   }
 

@@ -2,7 +2,7 @@ import type { AppData, Invoice, Order, OrderStatus, Product, Settings } from '..
 import { buildDemoData, OLD_DEMO_PRODUCT_IDS } from '../src/lib/demo'
 import { DEFAULT_CATEGORIES, DEFAULT_SETTINGS, EMPTY_DATA } from '../src/lib/defaults'
 import { uid } from '../src/lib/id'
-import { hasProductImage, salePrice } from '../src/lib/product'
+import { hasProductImage, productImages, salePrice } from '../src/lib/product'
 import { generatePassword, sha256Hex } from './crypto'
 import { ensureSchema } from './db'
 
@@ -115,6 +115,7 @@ async function seedIfEmpty(): Promise<void> {
     )
   }
   await syncExampleCatalog()
+  await removeProductsWithoutImages()
 }
 
 async function syncExampleCatalog(): Promise<void> {
@@ -152,6 +153,20 @@ async function syncExampleCatalog(): Promise<void> {
     ],
   }))
   await db.batch([...deletes, ...inserts], 'write')
+}
+
+async function removeProductsWithoutImages(): Promise<void> {
+  const db = await ensureSchema()
+  const res = await db.execute('SELECT * FROM products')
+  const ids = res.rows
+    .map((row) => mapProduct(row as Record<string, unknown>))
+    .filter((product) => !hasProductImage(product))
+    .map((product) => product.id)
+  if (!ids.length) return
+  await db.batch(
+    ids.map((id) => ({ sql: 'DELETE FROM products WHERE id = ?', args: [id] })),
+    'write',
+  )
 }
 
 async function ensureMerchantUser(passwordHash?: string): Promise<void> {
@@ -308,7 +323,8 @@ export async function upsertProduct(
   const db = await ensureSchema()
   await seedIfEmpty()
   const now = new Date().toISOString()
-  const images = input.images ?? []
+  const images = productImages({ image: input.image ?? '', images: input.images ?? [] })
+  if (!images.length) throw new Error('form.errPhoto')
   const id = input.id || uid('prd')
   const existing = input.id
     ? (await db.execute({ sql: 'SELECT created_at FROM products WHERE id = ?', args: [id] })).rows[0]
