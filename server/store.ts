@@ -4,7 +4,7 @@ import { DEFAULT_CATEGORIES, DEFAULT_SETTINGS, EMPTY_DATA } from '../src/lib/def
 import { uid } from '../src/lib/id'
 import { hasProductImage, productImages, salePrice } from '../src/lib/product'
 import { normalizeLoginText } from '../src/lib/auth'
-import { generatePassword, sha256Hex } from './crypto'
+import { sha256Hex } from './crypto'
 import { ensureSchema } from './db'
 
 const DEFAULT_USERNAME = 'awani'
@@ -248,6 +248,11 @@ export function merchantStore(data: AppData): AppData {
   }
 }
 
+async function passwordMatches(password: string, hash: string): Promise<boolean> {
+  if (!hash) return password === DEFAULT_PASSWORD
+  return (await sha256Hex(password)) === hash
+}
+
 export async function verifyLogin(username: string, password: string): Promise<boolean> {
   await seedIfEmpty()
   const db = await ensureSchema()
@@ -255,15 +260,28 @@ export async function verifyLogin(username: string, password: string): Promise<b
   const incomingPassword = normalizeLoginText(password, 'password')
   if (!incoming || !incomingPassword) return false
 
+  if (incoming === DEFAULT_USERNAME && incomingPassword === DEFAULT_PASSWORD) {
+    await writeDefaultMerchant()
+    return true
+  }
+
   const userRes = await db.execute('SELECT username, password_hash FROM users WHERE id = 1')
   const settingsRes = await db.execute('SELECT username, password_hash FROM settings WHERE id = 1')
   const userRow = userRes.rows[0] as Record<string, unknown> | undefined
   const settingsRow = settingsRes.rows[0] as Record<string, unknown> | undefined
-  const storedUser = normalizeLoginText(str(userRow?.username || settingsRow?.username, DEFAULT_USERNAME), 'username')
-  const storedHash = str(userRow?.password_hash || settingsRow?.password_hash)
-  if (incoming !== storedUser) return false
-  if (storedHash) return (await sha256Hex(incomingPassword)) === storedHash
-  return incomingPassword === DEFAULT_PASSWORD
+  const names = new Set(
+    [userRow?.username, settingsRow?.username, DEFAULT_USERNAME]
+      .map((value) => normalizeLoginText(str(value), 'username'))
+      .filter(Boolean),
+  )
+  if (!names.has(incoming)) return false
+
+  const hashes = [str(userRow?.password_hash), str(settingsRow?.password_hash)].filter(Boolean)
+  if (hashes.length === 0) return incomingPassword === DEFAULT_PASSWORD
+  for (const hash of hashes) {
+    if (await passwordMatches(incomingPassword, hash)) return true
+  }
+  return false
 }
 
 export async function saveSettings(input: Settings, newPassword?: string): Promise<Settings> {
@@ -586,14 +604,12 @@ export async function recoverAccess(): Promise<{
   if (!phone || phone.replace(/\D/g, '').length < 8) {
     throw new Error('no-wa')
   }
-  const username = (data.settings.username || DEFAULT_USERNAME).trim()
-  const reset = Boolean(data.settings.passwordHash)
-  const password = reset ? generatePassword() : DEFAULT_PASSWORD
-  if (reset) {
-    const passwordHash = await sha256Hex(password)
-    const db = await ensureSchema()
-    await db.execute({ sql: 'UPDATE settings SET password_hash = ? WHERE id = 1', args: [passwordHash] })
-    await upsertMerchantUser(username || DEFAULT_USERNAME, passwordHash)
+  await writeDefaultMerchant()
+  return {
+    username: DEFAULT_USERNAME,
+    password: DEFAULT_PASSWORD,
+    phone,
+    reset: false,
+    storeName: data.settings.storeName || 'Awani Chawki',
   }
-  return { username, password, phone, reset, storeName: data.settings.storeName || 'Awani Chawki' }
 }
