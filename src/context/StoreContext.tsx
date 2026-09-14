@@ -256,6 +256,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       const opened = openWhatsApp(
         recovered.phone,
         buildAccessMessage(recovered.storeName, recovered.username, recovered.password, lang),
+        'same',
       )
       if (!opened) return { ok: false as const, reason: 'wa-fail' as const }
       return { ok: true as const, reset: recovered.reset }

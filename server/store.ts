@@ -600,15 +600,11 @@ export async function recoverAccess(): Promise<{
   storeName: string
 }> {
   const data = await readStore()
-  const phone = data.settings.whatsapp
-  if (!phone || phone.replace(/\D/g, '').length < 8) {
-    throw new Error('no-wa')
-  }
   await writeDefaultMerchant()
   return {
     username: DEFAULT_USERNAME,
     password: DEFAULT_PASSWORD,
-    phone,
+    phone: data.settings.whatsapp || '',
     reset: false,
     storeName: data.settings.storeName || 'Awani Chawki',
   }

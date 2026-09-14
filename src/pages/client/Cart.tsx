@@ -7,6 +7,7 @@ import { EmptyState } from '../../components/EmptyState'
 import { PriceTag } from '../../components/PriceTag'
 import { useI18n } from '../../i18n/I18nContext'
 import { salePrice } from '../../lib/product'
+import { IconTrash } from '../../components/Icons'
 
 export function Cart() {
   const { data, cart, setCartQty, removeFromCart } = useStore()
@@ -48,22 +49,25 @@ export function Cart() {
             {lines.map((l) => (
               <li key={l.productId} className="cart-row">
                 <ProductImage product={l.product} className="thumb" />
-                <div>
+                <div className="product-meta">
                   <strong>{l.product.name}</strong>
                   <PriceTag product={l.product} />
                   {l.quantity > l.product.quantity && (
                     <p className="field-error">{t('cart.stockLeft', { n: l.product.quantity })}</p>
                   )}
-                  <button type="button" className="text-link" onClick={() => removeFromCart(l.productId)}>
+                </div>
+                <div className="cart-row-tools">
+                  <QtyStepper
+                    value={l.quantity}
+                    min={1}
+                    max={Math.max(l.product.quantity, 1)}
+                    onChange={(v) => setCartQty(l.productId, v)}
+                  />
+                  <button type="button" className="cart-remove" onClick={() => removeFromCart(l.productId)}>
+                    <IconTrash size={16} />
                     {t('cart.remove')}
                   </button>
                 </div>
-                <QtyStepper
-                  value={l.quantity}
-                  min={1}
-                  max={Math.max(l.product.quantity, 1)}
-                  onChange={(v) => setCartQty(l.productId, v)}
-                />
               </li>
             ))}
           </ul>

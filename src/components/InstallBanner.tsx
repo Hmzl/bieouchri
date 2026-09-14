@@ -10,6 +10,7 @@ import {
   rememberIfInstalled,
 } from '../lib/install'
 import { IconClose, IconDownload } from './Icons'
+import { Logo } from './Logo'
 
 const DISMISS_KEY = 'awani-chawki-install-dismiss'
 
@@ -85,7 +86,7 @@ export function InstallBanner() {
           <IconClose size={18} />
         </button>
         <div className="install-banner-icon" aria-hidden="true">
-          <img src="/logo.png" alt="" width={72} height={72} className="brand-logo brand-logo-lg" />
+          <Logo size="lg" className="install-banner-logo" />
         </div>
         <div className="install-banner-copy">
           <strong>{t('install.title')}</strong>

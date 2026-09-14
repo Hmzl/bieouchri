@@ -7,7 +7,7 @@ import { ProductImage } from '../../components/ProductImage'
 import { QtyStepper } from '../../components/QtyStepper'
 import { EmptyState } from '../../components/EmptyState'
 import { BarcodeScan } from '../../components/BarcodeScan'
-import { IconScan } from '../../components/Icons'
+import { IconScan, IconTrash } from '../../components/Icons'
 import { useI18n } from '../../i18n/I18nContext'
 import { findProductByBarcode, salePrice } from '../../lib/product'
 import { PriceTag } from '../../components/PriceTag'
@@ -124,12 +124,22 @@ export function QuickSale() {
                     <PriceTag product={p} /> · {t('sale.stock', { n: p.quantity })}
                   </p>
                 </div>
-                <QtyStepper
-                  value={line.quantity}
-                  min={0}
-                  max={p.quantity}
-                  onChange={(v) => setQty((prev) => ({ ...prev, [p.id]: v }))}
-                />
+                <div className="cart-row-tools">
+                  <QtyStepper
+                    value={line.quantity}
+                    min={0}
+                    max={p.quantity}
+                    onChange={(v) => setQty((prev) => ({ ...prev, [p.id]: v }))}
+                  />
+                  <button
+                    type="button"
+                    className="cart-remove"
+                    onClick={() => setQty((prev) => ({ ...prev, [p.id]: 0 }))}
+                  >
+                    <IconTrash size={16} />
+                    {t('cart.remove')}
+                  </button>
+                </div>
               </li>
             )
           })}

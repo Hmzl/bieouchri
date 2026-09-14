@@ -69,10 +69,23 @@ export function buildAccessMessage(
   ].join('\n')
 }
 
-export function openWhatsApp(phone: string, text: string): boolean {
+export function whatsappHref(phone: string, text: string): string | null {
+  const q = `text=${encodeURIComponent(text)}`
   const num = digitsOnly(phone)
-  if (num.length < 8) return false
-  const url = `https://wa.me/${num}?text=${encodeURIComponent(text)}`
-  window.open(url, '_blank', 'noopener,noreferrer')
+  if (num.length >= 8) return `https://wa.me/${num}?${q}`
+  return `https://wa.me/?${q}`
+}
+
+export function openWhatsApp(phone: string, text: string, mode: 'tab' | 'same' = 'tab'): boolean {
+  const url = whatsappHref(phone, text)
+  if (!url) return false
+  if (mode === 'same') {
+    window.location.assign(url)
+    return true
+  }
+  const opened = window.open(url, '_blank', 'noopener,noreferrer')
+  if (!opened) {
+    window.location.assign(url)
+  }
   return true
 }

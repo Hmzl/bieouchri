@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useStore } from '../../context/StoreContext'
 import { Header } from '../../components/Header'
 import { ProductImage } from '../../components/ProductImage'
@@ -13,6 +13,7 @@ export function ProductDetail() {
   const { id } = useParams()
   const { data, addToCart } = useStore()
   const { t, cat } = useI18n()
+  const navigate = useNavigate()
   const product = data.products.find((p) => p.id === id && hasProductImage(p))
   const [qty, setQty] = useState(1)
   const [photo, setPhoto] = useState(0)
@@ -32,6 +33,7 @@ export function ProductDetail() {
   function add() {
     if (!product) return
     addToCart(product.id, qty)
+    navigate('/')
   }
 
   return (

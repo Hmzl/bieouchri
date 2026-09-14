@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { Logo } from '../components/Logo'
+import { IconWhatsApp } from '../components/Icons'
 import { useStore } from '../context/StoreContext'
 import { useI18n } from '../i18n/I18nContext'
 import { normalizeLoginText } from '../lib/auth'
@@ -97,7 +98,8 @@ export function Login() {
         <button type="submit" className="btn btn-primary btn-block" disabled={busy}>
           {busy ? t('login.busy') : t('login.submit')}
         </button>
-        <button type="button" className="btn btn-text btn-block" disabled={busy} onClick={() => void forgot()}>
+        <button type="button" className="btn btn-secondary btn-block" disabled={busy} onClick={() => void forgot()}>
+          <IconWhatsApp size={18} />
           {t('login.forgot')}
         </button>
       </form>
