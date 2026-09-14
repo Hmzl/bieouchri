@@ -1,4 +1,5 @@
 import { useEffect, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 import { IconClose } from './Icons'
 
 interface ModalProps {
@@ -21,7 +22,10 @@ export function Modal({ open, title, onClose, children, footer }: ModalProps) {
 
   if (!open) return null
 
-  return (
+  const host = document.querySelector('.app-root')
+  if (!host) return null
+
+  return createPortal(
     <div className="modal-backdrop" onClick={onClose} role="presentation">
       <div
         className="modal"
@@ -39,6 +43,7 @@ export function Modal({ open, title, onClose, children, footer }: ModalProps) {
         <div className="modal-body">{children}</div>
         {footer && <div className="modal-foot">{footer}</div>}
       </div>
-    </div>
+    </div>,
+    host,
   )
 }
