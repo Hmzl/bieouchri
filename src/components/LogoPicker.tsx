@@ -7,9 +7,22 @@ import { useI18n } from '../i18n/I18nContext'
 interface LogoPickerProps {
   value: string
   onChange: (dataUrl: string) => void
+  titleKey?: string
+  hintKey?: string
+  resetKey?: string
+  errorKey?: string
+  maxSize?: number
 }
 
-export function LogoPicker({ value, onChange }: LogoPickerProps) {
+export function LogoPicker({
+  value,
+  onChange,
+  titleKey = 'settings.logo',
+  hintKey = 'settings.logoHint',
+  resetKey = 'settings.logoReset',
+  errorKey = 'settings.logoErr',
+  maxSize = 256,
+}: LogoPickerProps) {
   const { t } = useI18n()
   const cameraRef = useRef<HTMLInputElement>(null)
   const galleryRef = useRef<HTMLInputElement>(null)
@@ -20,21 +33,21 @@ export function LogoPicker({ value, onChange }: LogoPickerProps) {
     if (!file) return
     setError('')
     try {
-      onChange(await compressSquareImage(file))
+      onChange(await compressSquareImage(file, maxSize))
     } catch {
-      setError(t('settings.logoErr'))
+      setError(t(errorKey))
     }
   }
 
   return (
     <div className="logo-picker">
       <span className="logo-picker-preview">
-        <img src={src} alt={t('settings.logo')} className="brand-logo brand-logo-lg" />
+        <img src={src} alt={t(titleKey)} className="brand-logo brand-logo-lg" />
       </span>
       <div className="logo-picker-actions">
         <span className="field">
-          <span>{t('settings.logo')}</span>
-          <small>{t('settings.logoHint')}</small>
+          <span>{t(titleKey)}</span>
+          <small>{t(hintKey)}</small>
         </span>
         <div className="photo-actions">
           <button type="button" className="btn btn-ghost" onClick={() => cameraRef.current?.click()}>
@@ -48,7 +61,7 @@ export function LogoPicker({ value, onChange }: LogoPickerProps) {
         </div>
         {value ? (
           <button type="button" className="btn btn-text" onClick={() => onChange('')}>
-            {t('settings.logoReset')}
+            {t(resetKey)}
           </button>
         ) : null}
         {error && <p className="field-error">{error}</p>}

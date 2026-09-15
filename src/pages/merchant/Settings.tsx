@@ -11,7 +11,11 @@ export function Settings() {
   const { data, saveSettings } = useStore()
   const { t, lang } = useI18n()
   const navigate = useNavigate()
-  const [form, setForm] = useState(data.settings)
+  const [form, setForm] = useState({
+    ...data.settings,
+    pwaName: data.settings.pwaName || 'Market',
+    pwaIcon: data.settings.pwaIcon || '',
+  })
   const [username, setUsername] = useState(data.settings.username || 'awani')
   const [password, setPassword] = useState('')
   const [password2, setPassword2] = useState('')
@@ -72,6 +76,8 @@ export function Settings() {
           address: form.address.trim(),
           username: nextUser,
           logo: form.logo || '',
+          pwaName: form.pwaName,
+          pwaIcon: form.pwaIcon || '',
         },
         nextPass || undefined,
       )
@@ -140,6 +146,26 @@ export function Settings() {
             inputMode="numeric"
           />
         </label>
+
+        <h2 className="section-title">{t('settings.pwa')}</h2>
+        <p className="muted">{t('settings.pwaHint')}</p>
+        <label className="field">
+          <span>{t('settings.pwaName')}</span>
+          <input
+            value={form.pwaName || ''}
+            onChange={(e) => set('pwaName', e.target.value)}
+            maxLength={30}
+            placeholder="Market"
+          />
+        </label>
+        <LogoPicker
+          value={form.pwaIcon || ''}
+          onChange={(pwaIcon) => set('pwaIcon', pwaIcon)}
+          titleKey="settings.pwaIcon"
+          hintKey="settings.pwaIconHint"
+          resetKey="settings.pwaIconReset"
+          maxSize={512}
+        />
 
         <h2 className="section-title">{t('settings.account')}</h2>
         <p className="muted">{t('settings.accountHint')}</p>

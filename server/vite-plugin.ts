@@ -49,10 +49,16 @@ function useLocalSqlite(): void {
   process.env.TURSO_AUTH_TOKEN = 'local-dev'
   process.env.TURSO_LOCAL = '1'
   if (!envFlag('AUTH_SECRET')) process.env.AUTH_SECRET = 'awani-chawki-dev-secret'
-  const glob = globalThis as { __awaniDb?: unknown; __awaniSchemaReady?: boolean; __awaniBarcodeReady?: boolean }
+  const glob = globalThis as {
+    __awaniDb?: unknown
+    __awaniSchemaReady?: boolean
+    __awaniBarcodeReady?: boolean
+    __awaniPwaReady?: boolean
+  }
   delete glob.__awaniDb
   glob.__awaniSchemaReady = false
   glob.__awaniBarcodeReady = false
+  glob.__awaniPwaReady = false
 }
 
 export function tursoApiPlugin(): Plugin {

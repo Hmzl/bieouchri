@@ -11,11 +11,15 @@ import {
 } from '../lib/install'
 import { IconClose, IconDownload } from './Icons'
 import { Logo } from './Logo'
+import { useStore } from '../context/StoreContext'
+import { pwaDisplayName } from '../lib/pwa'
 
 const DISMISS_KEY = 'awani-chawki-install-dismiss'
 
 export function InstallBanner() {
   const { t } = useI18n()
+  const { data } = useStore()
+  const appName = pwaDisplayName(data.settings)
   const [visible, setVisible] = useState(() => {
     try {
       return !sessionStorage.getItem(DISMISS_KEY)
@@ -77,19 +81,24 @@ export function InstallBanner() {
 
   if (isAppInstalled() || !visible) return null
 
-  const hint = installHint() === 'ios' ? t('install.ios') : canPrompt ? t('install.text') : t('install.android')
+  const hint =
+    installHint() === 'ios'
+      ? t('install.ios')
+      : canPrompt
+        ? t('install.text', { name: appName })
+        : t('install.android')
 
   return (
     <div className="install-overlay" role="presentation">
-      <aside className="install-banner" role="dialog" aria-modal="true" aria-label={t('install.title')}>
+      <aside className="install-banner" role="dialog" aria-modal="true" aria-label={t('install.title', { name: appName })}>
         <button type="button" className="install-banner-close" onClick={dismiss} aria-label={t('install.close')}>
           <IconClose size={18} />
         </button>
         <div className="install-banner-icon" aria-hidden="true">
-          <Logo size="lg" className="install-banner-logo" />
+          <Logo size="lg" className="install-banner-logo" src={data.settings.pwaIcon || '/logo.png'} />
         </div>
         <div className="install-banner-copy">
-          <strong>{t('install.title')}</strong>
+          <strong>{t('install.title', { name: appName })}</strong>
           <p>{hint}</p>
         </div>
         <button type="button" className="btn btn-primary install-banner-btn" onClick={() => void download()}>

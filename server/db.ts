@@ -1,6 +1,11 @@
 import { createClient, type Client } from '@libsql/client/web'
 
-type DbGlobal = typeof globalThis & { __awaniDb?: Client; __awaniSchemaReady?: boolean; __awaniBarcodeReady?: boolean }
+type DbGlobal = typeof globalThis & {
+  __awaniDb?: Client
+  __awaniSchemaReady?: boolean
+  __awaniBarcodeReady?: boolean
+  __awaniPwaReady?: boolean
+}
 
 function g(): DbGlobal {
   return globalThis as DbGlobal
@@ -115,6 +120,19 @@ export async function ensureSchema(): Promise<Client> {
       /* column already exists */
     }
     g().__awaniBarcodeReady = true
+  }
+  if (!g().__awaniPwaReady) {
+    try {
+      await db.execute("ALTER TABLE settings ADD COLUMN pwa_name TEXT NOT NULL DEFAULT 'Market'")
+    } catch {
+      /* column already exists */
+    }
+    try {
+      await db.execute("ALTER TABLE settings ADD COLUMN pwa_icon TEXT NOT NULL DEFAULT ''")
+    } catch {
+      /* column already exists */
+    }
+    g().__awaniPwaReady = true
   }
   return db
 }

@@ -22,6 +22,8 @@ export const DEFAULT_SETTINGS: Settings = {
   passwordHash: '',
   deliveryFee: 0,
   logo: '',
+  pwaName: 'Market',
+  pwaIcon: '',
 }
 
 export const EMPTY_DATA: AppData = {

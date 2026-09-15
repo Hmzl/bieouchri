@@ -16,6 +16,7 @@ import {
   verifyLogin,
 } from './store'
 import type { OrderStatus, Product, Settings } from '../src/types'
+import { manifestResponse, pwaIconResponse } from './pwa'
 
 function json(data: unknown, status = 200): Response {
   return new Response(JSON.stringify(data), {
@@ -55,6 +56,14 @@ export async function handleApi(req: Request): Promise<Response> {
 
     if (method === 'GET' && path === '/api/store') {
       return json(publicStore(await readStore()))
+    }
+
+    if (method === 'GET' && path === '/api/manifest') {
+      return manifestResponse(req)
+    }
+
+    if (method === 'GET' && path === '/api/pwa-icon') {
+      return pwaIconResponse(req)
     }
 
     if (method === 'POST' && isPath(path, '/api/login', '/api/auth/login')) {

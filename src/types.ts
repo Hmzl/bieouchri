@@ -65,6 +65,8 @@ export interface Settings {
   passwordHash: string
   deliveryFee: number
   logo: string
+  pwaName: string
+  pwaIcon: string
 }
 
 export interface AppData {

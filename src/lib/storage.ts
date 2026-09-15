@@ -90,6 +90,8 @@ export function normalizeStore(data: Partial<AppData>): AppData {
       currencySymbol: 'DH',
       passwordHash: '',
       logo: data.settings?.logo ?? '',
+      pwaName: data.settings?.pwaName ?? DEFAULT_SETTINGS.pwaName,
+      pwaIcon: data.settings?.pwaIcon ?? '',
     },
   }
 }

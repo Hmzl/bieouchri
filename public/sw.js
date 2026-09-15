@@ -1,4 +1,4 @@
-const CACHE = 'awani-chawki-v4'
+const CACHE = 'awani-chawki-v5'
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -6,7 +6,7 @@ self.addEventListener('install', (event) => {
       .open(CACHE)
       .then((cache) =>
         Promise.all(
-          ['/', '/manifest.json', '/logo.png', '/logo-192.png', '/logo-512.png', '/logo-maskable.png', '/apple-touch-icon.png'].map((url) =>
+          ['/', '/logo.png', '/logo-192.png', '/logo-512.png', '/logo-maskable.png', '/apple-touch-icon.png'].map((url) =>
             cache.add(url).catch(() => undefined),
           ),
         ),

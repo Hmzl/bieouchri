@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { Navigate, Outlet, Route, Routes, useLocation, useParams } from 'react-router-dom'
 import { PrefsBar } from './components/PrefsBar'
 import { ClientNav, MerchantNav } from './components/BottomNav'
@@ -21,6 +22,7 @@ import { ProductDetail } from './pages/client/ProductDetail'
 import { Cart } from './pages/client/Cart'
 import { Checkout } from './pages/client/Checkout'
 import { Thanks } from './pages/client/Thanks'
+import { applyPwaMeta } from './lib/pwa'
 
 function Phone({ nav }: { nav?: 'merchant' | 'client' }) {
   const location = useLocation()
@@ -51,8 +53,12 @@ function RequireMerchant() {
 }
 
 export default function App() {
-  const { loading, error, refresh } = useStore()
+  const { loading, error, refresh, data } = useStore()
   const { t } = useI18n()
+
+  useEffect(() => {
+    applyPwaMeta(data.settings)
+  }, [data.settings])
 
   if (loading || error) {
     return (

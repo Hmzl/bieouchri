@@ -9,6 +9,12 @@ import { ensureSchema } from './db'
 
 const DEFAULT_USERNAME = 'awani'
 const DEFAULT_PASSWORD = 'chawki'
+const DEFAULT_PWA_NAME = 'Market'
+
+function pwaNameOf(value: unknown): string {
+  const name = str(value).trim().slice(0, 30)
+  return name || DEFAULT_PWA_NAME
+}
 
 function num(value: unknown, fallback = 0): number {
   const n = Number(value)
@@ -88,6 +94,8 @@ function mapSettings(row: Record<string, unknown> | undefined): Settings {
     passwordHash: str(row.password_hash),
     deliveryFee: Math.max(0, num(row.delivery_fee)),
     logo: str(row.logo),
+    pwaName: pwaNameOf(row.pwa_name),
+    pwaIcon: str(row.pwa_icon),
   }
 }
 
@@ -306,12 +314,14 @@ export async function saveSettings(input: Settings, newPassword?: string): Promi
     currency: 'MAD',
     currencySymbol: 'DH',
     logo: input.logo || '',
+    pwaName: pwaNameOf(input.pwaName),
+    pwaIcon: input.pwaIcon || '',
     deliveryFee: Math.max(0, Number(input.deliveryFee) || 0),
     lowStockThreshold: Math.max(1, Math.round(Number(input.lowStockThreshold) || 5)),
   }
   await db.execute({
     sql: `UPDATE settings SET store_name=?, merchant_name=?, whatsapp=?, currency='MAD', currency_symbol='DH',
-          low_stock_threshold=?, address=?, username=?, password_hash=?, delivery_fee=?, logo=? WHERE id=1`,
+          low_stock_threshold=?, address=?, username=?, password_hash=?, delivery_fee=?, logo=?, pwa_name=?, pwa_icon=? WHERE id=1`,
     args: [
       next.storeName,
       next.merchantName,
@@ -322,6 +332,8 @@ export async function saveSettings(input: Settings, newPassword?: string): Promi
       next.passwordHash,
       next.deliveryFee,
       next.logo,
+      next.pwaName,
+      next.pwaIcon,
     ],
   })
   await upsertMerchantUser(next.username, next.passwordHash || (await sha256Hex(DEFAULT_PASSWORD)))
@@ -510,6 +522,8 @@ export async function loadDemo(): Promise<AppData> {
       username: current.settings.username,
       passwordHash: current.settings.passwordHash,
       logo: current.settings.logo,
+      pwaName: current.settings.pwaName,
+      pwaIcon: current.settings.pwaIcon,
       whatsapp: current.settings.whatsapp || demo.settings.whatsapp,
     },
   }
@@ -532,7 +546,7 @@ async function writeFullStore(data: AppData): Promise<void> {
   `)
   await db.execute({
     sql: `UPDATE settings SET store_name=?, merchant_name=?, whatsapp=?, currency='MAD', currency_symbol='DH',
-          low_stock_threshold=?, address=?, username=?, password_hash=?, delivery_fee=?, logo=? WHERE id=1`,
+          low_stock_threshold=?, address=?, username=?, password_hash=?, delivery_fee=?, logo=?, pwa_name=?, pwa_icon=? WHERE id=1`,
     args: [
       data.settings.storeName,
       data.settings.merchantName,
@@ -543,6 +557,8 @@ async function writeFullStore(data: AppData): Promise<void> {
       data.settings.passwordHash,
       data.settings.deliveryFee,
       data.settings.logo,
+      pwaNameOf(data.settings.pwaName),
+      data.settings.pwaIcon || '',
     ],
   })
   const catStmt = data.categories.map((name) => ({ sql: 'INSERT OR IGNORE INTO categories (name) VALUES (?)', args: [name] }))
