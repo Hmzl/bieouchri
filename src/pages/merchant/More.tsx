@@ -7,9 +7,38 @@ import { useI18n } from '../../i18n/I18nContext'
 
 export function More() {
   const { loadDemo, resetAll, logout, data } = useStore()
-  const { t } = useI18n()
+  const { t, err } = useI18n()
   const navigate = useNavigate()
   const [resetOpen, setResetOpen] = useState(false)
+  const [error, setError] = useState('')
+  const [busy, setBusy] = useState(false)
+
+  async function demo() {
+    setError('')
+    setBusy(true)
+    try {
+      await loadDemo()
+    } catch (e) {
+      setError(e instanceof Error ? err(e.message) : t('more.error'))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function confirmReset() {
+    setError('')
+    setBusy(true)
+    try {
+      await resetAll()
+      setResetOpen(false)
+      navigate('/connexion')
+    } catch (e) {
+      setError(e instanceof Error ? err(e.message) : t('more.error'))
+      setResetOpen(false)
+    } finally {
+      setBusy(false)
+    }
+  }
 
   return (
     <div className="page page--nav">
@@ -51,13 +80,16 @@ export function More() {
         </Link>
       </nav>
 
+      {error && <p className="field-error">{error}</p>}
+
       <div className="stack-gap">
-        <button type="button" className="btn btn-secondary btn-block" onClick={() => void loadDemo()}>
+        <button type="button" className="btn btn-secondary btn-block" disabled={busy} onClick={() => void demo()}>
           {t('more.demo')}
         </button>
         <button
           type="button"
           className="btn btn-ghost btn-block"
+          disabled={busy}
           onClick={() => {
             logout()
             navigate('/connexion')
@@ -65,7 +97,7 @@ export function More() {
         >
           {t('more.logout')}
         </button>
-        <button type="button" className="btn btn-danger-ghost btn-block" onClick={() => setResetOpen(true)}>
+        <button type="button" className="btn btn-danger-ghost btn-block" disabled={busy} onClick={() => setResetOpen(true)}>
           {t('more.reset')}
         </button>
       </div>
@@ -79,16 +111,7 @@ export function More() {
             <button type="button" className="btn btn-ghost" onClick={() => setResetOpen(false)}>
               {t('form.cancel')}
             </button>
-            <button
-              type="button"
-              className="btn btn-danger"
-              onClick={() => {
-                void resetAll().then(() => {
-                  setResetOpen(false)
-                  navigate('/connexion')
-                })
-              }}
-            >
+            <button type="button" className="btn btn-danger" disabled={busy} onClick={() => void confirmReset()}>
               {t('more.resetOk')}
             </button>
           </>

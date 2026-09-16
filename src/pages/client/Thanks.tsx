@@ -4,7 +4,7 @@ import { useI18n } from '../../i18n/I18nContext'
 
 interface LocationState {
   orderId?: string
-  whatsappOpened?: boolean
+  whatsappOpened?: boolean | 'skipped'
 }
 
 export function Thanks() {
@@ -20,6 +20,7 @@ export function Thanks() {
         </div>
         <h1>{t('thanks.title')}</h1>
         <p>{t('thanks.text')}</p>
+        {state.whatsappOpened === 'skipped' && <p className="muted">{t('thanks.noWa')}</p>}
         {state.whatsappOpened === false && <p className="field-error">{t('thanks.waFail')}</p>}
         <p className="muted">{t('thanks.received')}</p>
         <Link to="/" className="btn btn-primary btn-block">

@@ -9,7 +9,7 @@ import { useI18n } from '../../i18n/I18nContext'
 
 export function Settings() {
   const { data, saveSettings } = useStore()
-  const { t, lang } = useI18n()
+  const { t, lang, err } = useI18n()
   const navigate = useNavigate()
   const [form, setForm] = useState({
     ...data.settings,
@@ -92,7 +92,7 @@ export function Settings() {
       setSaved(true)
       window.setTimeout(() => navigate('/merchant'), 700)
     } catch (e) {
-      setError(e instanceof Error ? e.message : t('settings.errFail'))
+      setError(e instanceof Error ? err(e.message) : t('settings.errFail'))
     } finally {
       setBusy(false)
     }

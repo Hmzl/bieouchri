@@ -109,9 +109,14 @@ export function ProductForm() {
   async function addCat() {
     const value = newCat.trim()
     if (!value) return
-    await addCategory(value)
-    setCategory(value)
-    setNewCat('')
+    setError('')
+    try {
+      await addCategory(value)
+      setCategory(value)
+      setNewCat('')
+    } catch (caught) {
+      setError(caught instanceof Error ? err(caught.message) : t('form.errCat'))
+    }
   }
 
   return (
@@ -240,7 +245,13 @@ export function ProductForm() {
               type="button"
               className="btn btn-danger"
               onClick={() => {
-                if (existing) void deleteProduct(existing.id).then(() => navigate('/merchant/produits'))
+                if (!existing) return
+                void deleteProduct(existing.id)
+                  .then(() => navigate('/merchant/produits'))
+                  .catch((caught: unknown) => {
+                    setConfirmDelete(false)
+                    setError(caught instanceof Error ? err(caught.message) : t('form.errFail'))
+                  })
               }}
             >
               {t('form.deleteConfirm')}

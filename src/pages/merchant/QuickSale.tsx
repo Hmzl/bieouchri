@@ -30,6 +30,11 @@ export function QuickSale() {
     setParams(next, { replace: true })
   }, [params, setParams])
 
+  const stocked = useMemo(
+    () => data.products.filter((p) => p.quantity > 0),
+    [data.products],
+  )
+
   const lines = useMemo(
     () =>
       Object.entries(qty)
@@ -37,6 +42,18 @@ export function QuickSale() {
         .map(([productId, quantity]) => ({ productId, quantity })),
     [qty],
   )
+
+  function addProduct(productId: string) {
+    const product = data.products.find((p) => p.id === productId)
+    if (!product) return
+    const current = qty[product.id] ?? 0
+    if (product.quantity <= 0 || current >= product.quantity) {
+      setError(t('sale.max'))
+      return
+    }
+    setError('')
+    setQty((prev) => ({ ...prev, [product.id]: (prev[product.id] ?? 0) + 1 }))
+  }
 
   const total = lines.reduce((s, line) => {
     const p = data.products.find((x) => x.id === line.productId)
@@ -87,7 +104,7 @@ export function QuickSale() {
 
   const verifyBtn = (
     <button type="button" className="btn btn-primary" disabled={lines.length === 0 || busy} onClick={() => void confirm()}>
-      {t('sale.verify')}
+      {busy ? t('sale.busy') : t('sale.ok')}
     </button>
   )
 
@@ -108,37 +125,43 @@ export function QuickSale() {
       </button>
       <p className="muted">{t('sale.hint')}</p>
 
-      {lines.length === 0 ? (
+      {stocked.length === 0 ? (
         <EmptyState title={t('sale.emptyTitle')} text={t('sale.emptyText')} />
       ) : (
         <ul className="sale-list">
-          {lines.map((line) => {
-            const p = data.products.find((x) => x.id === line.productId)
-            if (!p) return null
+          {stocked.map((p) => {
+            const quantity = qty[p.id] ?? 0
             return (
               <li key={p.id} className="sale-row">
-                <ProductImage product={p} className="thumb" />
-                <div className="product-meta">
-                  <strong>{p.name}</strong>
-                  <p>
-                    <PriceTag product={p} /> · {t('sale.stock', { n: p.quantity })}
-                  </p>
-                </div>
+                <button type="button" className="sale-pick" onClick={() => addProduct(p.id)}>
+                  <ProductImage product={p} className="thumb" />
+                  <div className="product-meta">
+                    <strong>{p.name}</strong>
+                    <p>
+                      <PriceTag product={p} /> · {t('sale.stock', { n: p.quantity })}
+                    </p>
+                  </div>
+                </button>
                 <div className="cart-row-tools">
                   <QtyStepper
-                    value={line.quantity}
+                    value={quantity}
                     min={0}
                     max={p.quantity}
-                    onChange={(v) => setQty((prev) => ({ ...prev, [p.id]: v }))}
+                    onChange={(v) => {
+                      setError('')
+                      setQty((prev) => ({ ...prev, [p.id]: v }))
+                    }}
                   />
-                  <button
-                    type="button"
-                    className="cart-remove"
-                    onClick={() => setQty((prev) => ({ ...prev, [p.id]: 0 }))}
-                  >
-                    <IconTrash size={16} />
-                    {t('cart.remove')}
-                  </button>
+                  {quantity > 0 && (
+                    <button
+                      type="button"
+                      className="cart-remove"
+                      onClick={() => setQty((prev) => ({ ...prev, [p.id]: 0 }))}
+                    >
+                      <IconTrash size={16} />
+                      {t('cart.remove')}
+                    </button>
+                  )}
                 </div>
               </li>
             )
@@ -166,7 +189,7 @@ export function QuickSale() {
         extra={
           lines.length > 0 ? (
             <button type="button" className="btn btn-primary btn-block" disabled={busy} onClick={() => void confirm()}>
-              {t('sale.verify')} · {formatMoney(total)}
+              {busy ? t('sale.busy') : `${t('sale.ok')} · ${formatMoney(total)}`}
             </button>
           ) : null
         }

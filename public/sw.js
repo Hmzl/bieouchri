@@ -1,4 +1,4 @@
-const CACHE = 'awani-chawki-v5'
+const CACHE = 'awani-chawki-v6'
 
 self.addEventListener('install', (event) => {
   event.waitUntil(

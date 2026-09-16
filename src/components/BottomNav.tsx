@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom'
-import { IconBox, IconCart, IconChart, IconHome, IconStore } from './Icons'
+import { IconBag, IconBox, IconCart, IconChart, IconHome, IconStore } from './Icons'
 import { useStore } from '../context/StoreContext'
 import { useI18n } from '../i18n/I18nContext'
 
@@ -16,7 +16,7 @@ export function MerchantNav() {
         <span>{t('nav.products')}</span>
       </NavLink>
       <NavLink to="/merchant/commandes" className="nav-item">
-        <IconBagIcon />
+        <IconBag />
         <span>{t('nav.orders')}</span>
       </NavLink>
       <NavLink to="/merchant/plus" className="nav-item">
@@ -24,14 +24,6 @@ export function MerchantNav() {
         <span>{t('nav.more')}</span>
       </NavLink>
     </nav>
-  )
-}
-
-function IconBagIcon() {
-  return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M6 8h12l-1 13H7zM9 8V6a3 3 0 0 1 6 0v2" />
-    </svg>
   )
 }
 

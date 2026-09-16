@@ -606,8 +606,14 @@ html[data-theme="dark"] .brand-logo {
   min-width: 0;
 }
 
+.cart-row,
+.sale-row {
+  flex-wrap: wrap;
+}
+
 .cart-row > div,
 .sale-row > div,
+.sale-pick,
 .invoice-row > div,
 .menu-item > div {
   min-width: 0;
@@ -615,12 +621,28 @@ html[data-theme="dark"] .brand-logo {
 }
 
 .cart-row-tools {
-  flex: 0 0 auto;
+  flex: 1 1 140px;
   min-width: 0;
   display: flex;
-  flex-direction: column;
-  align-items: stretch;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
   gap: 8px;
+}
+
+.sale-pick {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1 1 160px;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: start;
+  cursor: pointer;
 }
 
 .cart-remove {
@@ -1779,10 +1801,10 @@ html[data-theme="dark"] .checkout-bar {
 
 .install-banner-close {
   position: absolute;
-  top: 10px;
-  inset-inline-end: 10px;
-  width: 32px;
-  height: 32px;
+  top: 8px;
+  inset-inline-end: 8px;
+  width: 44px;
+  height: 44px;
   border: 0;
   border-radius: 999px;
   background: var(--paper);

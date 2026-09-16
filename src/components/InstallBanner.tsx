@@ -89,8 +89,14 @@ export function InstallBanner() {
         : t('install.android')
 
   return (
-    <div className="install-overlay" role="presentation">
-      <aside className="install-banner" role="dialog" aria-modal="true" aria-label={t('install.title', { name: appName })}>
+    <div className="install-overlay" role="presentation" onClick={dismiss}>
+      <aside
+        className="install-banner"
+        role="dialog"
+        aria-modal="true"
+        aria-label={t('install.title', { name: appName })}
+        onClick={(e) => e.stopPropagation()}
+      >
         <button type="button" className="install-banner-close" onClick={dismiss} aria-label={t('install.close')}>
           <IconClose size={18} />
         </button>

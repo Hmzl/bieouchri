@@ -77,7 +77,7 @@ export async function pwaIconResponse(req: Request): Promise<Response> {
       size === '512' || size === 'maskable' ? '/logo-512.png' : size === 'apple' ? '/apple-touch-icon.png' : '/logo-192.png'
     return Response.redirect(new URL(fallback, req.url), 302)
   }
-  return new Response(parsed.body, {
+  return new Response(new Blob([parsed.body], { type: parsed.mime }), {
     headers: {
       'content-type': parsed.mime,
       'cache-control': 'no-store',

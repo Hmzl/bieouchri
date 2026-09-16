@@ -23,6 +23,7 @@ export function Checkout() {
   const [notes, setNotes] = useState('')
   const [error, setError] = useState('')
   const [geoHint, setGeoHint] = useState('')
+  const [sending, setSending] = useState(false)
 
   const lines = cart
     .map((c) => {
@@ -36,8 +37,8 @@ export function Checkout() {
   const total = subtotal + delivery
 
   useEffect(() => {
-    if (cart.length === 0) navigate('/panier')
-  }, [cart.length, navigate])
+    if (!sending && cart.length === 0) navigate('/panier')
+  }, [cart.length, navigate, sending])
 
   async function locate() {
     setLocating(true)
@@ -48,6 +49,7 @@ export function Checkout() {
       const pos = await getCurrentPosition()
       setLat(pos.lat)
       setLng(pos.lng)
+      setConfirmed(true)
       try {
         const label = await reverseGeocode(pos.lat, pos.lng, lang)
         setAddress(label)
@@ -82,11 +84,8 @@ export function Checkout() {
       setError(t('checkout.errConfirm'))
       return
     }
-    if (!data.settings.whatsapp) {
-      setError(t('checkout.errWa'))
-      return
-    }
 
+    setSending(true)
     try {
       const order = await placeOrder({
         customerName: name.trim(),
@@ -97,16 +96,21 @@ export function Checkout() {
         notes,
         source: 'client',
       })
-      const message = buildOrderMessage(
-        order,
-        data.settings.storeName,
-        data.settings.currencySymbol,
-        data.settings.currency,
-        lang,
-      )
-      const opened = openWhatsApp(data.settings.whatsapp, message)
-      navigate('/merci', { state: { orderId: order.id, whatsappOpened: opened } })
+      const merchantWa = data.settings.whatsapp
+      let whatsappOpened: boolean | 'skipped' = 'skipped'
+      if (merchantWa) {
+        const message = buildOrderMessage(
+          order,
+          data.settings.storeName,
+          data.settings.currencySymbol,
+          data.settings.currency,
+          lang,
+        )
+        whatsappOpened = openWhatsApp(merchantWa, message)
+      }
+      navigate('/merci', { state: { orderId: order.id, whatsappOpened } })
     } catch (e) {
+      setSending(false)
       setError(e instanceof Error ? err(e.message) : t('checkout.errFail'))
     }
   }
@@ -179,8 +183,9 @@ export function Checkout() {
             <textarea
               value={address}
               onChange={(e) => {
-                setAddress(e.target.value)
-                setConfirmed(false)
+                const value = e.target.value
+                setAddress(value)
+                setConfirmed(value.trim().length > 0)
               }}
               rows={3}
               placeholder={t('checkout.addressPh')}
@@ -206,10 +211,10 @@ export function Checkout() {
         </div>
 
         {error && <p className="field-error">{error}</p>}
-        {!data.settings.whatsapp && <p className="field-error">{t('checkout.errWaHint')}</p>}
+        {!data.settings.whatsapp && <p className="muted">{t('checkout.errWaHint')}</p>}
 
-        <button type="submit" className="btn btn-primary btn-block">
-          {t('checkout.send')}
+        <button type="submit" className="btn btn-primary btn-block" disabled={sending}>
+          {sending ? t('checkout.sending') : data.settings.whatsapp ? t('checkout.send') : t('checkout.sendSave')}
         </button>
       </form>
     </div>

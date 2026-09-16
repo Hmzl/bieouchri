@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useStore } from '../../context/StoreContext'
 import { formatDateShort, formatMoney, formatTime, mapsUrl } from '../../lib/format'
@@ -6,8 +7,18 @@ import { useI18n } from '../../i18n/I18nContext'
 
 export function Orders() {
   const { data, updateOrderStatus } = useStore()
-  const { t } = useI18n()
+  const { t, err } = useI18n()
   const { orders, invoices } = data
+  const [error, setError] = useState('')
+
+  async function setStatus(id: string, status: 'completed' | 'cancelled') {
+    setError('')
+    try {
+      await updateOrderStatus(id, status)
+    } catch (e) {
+      setError(e instanceof Error ? err(e.message) : t('orders.error'))
+    }
+  }
 
   return (
     <div className="page page--nav">
@@ -17,6 +28,8 @@ export function Orders() {
           <h1>{t('orders.title')}</h1>
         </div>
       </header>
+
+      {error && <p className="field-error">{error}</p>}
 
       {orders.length === 0 ? (
         <EmptyState title={t('orders.emptyTitle')} text={t('orders.emptyText')} />
@@ -65,10 +78,10 @@ export function Orders() {
                   <div className="row-actions">
                     {o.status === 'confirmed' && (
                       <>
-                        <button type="button" className="btn btn-ghost" onClick={() => void updateOrderStatus(o.id, 'completed')}>
+                        <button type="button" className="btn btn-ghost" onClick={() => void setStatus(o.id, 'completed')}>
                           {t('orders.done')}
                         </button>
-                        <button type="button" className="btn btn-ghost" onClick={() => void updateOrderStatus(o.id, 'cancelled')}>
+                        <button type="button" className="btn btn-ghost" onClick={() => void setStatus(o.id, 'cancelled')}>
                           {t('orders.cancel')}
                         </button>
                       </>
